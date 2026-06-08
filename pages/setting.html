@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pengaturan — MyApp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+</head>
+<body class="app-page">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Pengaturan</h1>
+        <p class="page-sub">Atur preferensi tampilan dan aplikasi.</p>
+      </div>
+    </div>
+
+    <!-- Tampilan -->
+    <div class="card">
+      <h3 class="section-title">Tampilan</h3>
+      <div class="divider"></div>
+
+      <div class="setting-row" style="border:none">
+        <div class="setting-info">
+          <p class="setting-label">Mode Tampilan</p>
+          <p class="setting-desc">Pilih tema gelap atau terang — perubahan langsung diterapkan</p>
+        </div>
+        <div class="format-pills" style="margin:0">
+          <label class="format-pill"><input type="radio" name="display-mode" value="dark" checked onchange="applyDisplayMode(this.value)" /> 🌙 Gelap</label>
+          <label class="format-pill"><input type="radio" name="display-mode" value="light" onchange="applyDisplayMode(this.value)" /> ☀️ Terang</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privasi -->
+    <div class="card" style="margin-top:20px">
+      <h3 class="section-title">Privasi & Data</h3>
+      <div class="divider"></div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-label">Data tersimpan</p>
+          <p class="setting-desc">Profil, pengaturan, dan riwayat tersimpan di browser ini</p>
+        </div>
+        <span class="badge badge-accent" id="storage-size">—</span>
+      </div>
+
+      <div class="setting-row" style="border:none">
+        <div class="setting-info">
+          <p class="setting-label">Hapus semua data lokal</p>
+          <p class="setting-desc">Profil dan pengaturan akan direset. Akun Google tidak terpengaruh.</p>
+        </div>
+        <button class="btn btn-danger" onclick="clearAllData()">Hapus Data</button>
+      </div>
+    </div>
+
+    <!-- Tentang -->
+    <div class="card" style="margin-top:20px">
+      <h3 class="section-title">Tentang Aplikasi</h3>
+      <div class="divider"></div>
+      <div class="info-row"><span class="info-label">Versi</span><span class="info-value">1.0.0</span></div>
+      <div class="info-row"><span class="info-label">Platform</span><span class="info-value">Web (HTML + JS)</span></div>
+      <div class="info-row" style="border:none"><span class="info-label">Login</span><span class="info-value">Google OAuth 2.0</span></div>
+    </div>
+  </main>
+
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    requireLogin();
+    renderSidebar("setting");
+    applyGlobalSettings();
+
+    function loadSettings() {
+      const s = JSON.parse(localStorage.getItem("settings") || "{}");
+      if (s.darkMode === "light") {
+        document.querySelectorAll('input[name="display-mode"]').forEach(r => r.checked = r.value === "light");
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+
+      let total = 0;
+      for (let k in localStorage) { if (localStorage.hasOwnProperty(k)) total += (localStorage[k].length + k.length) * 2; }
+      document.getElementById("storage-size").textContent = total < 1024 ? total + " B" : (total/1024).toFixed(1) + " KB";
+    }
+
+    function applyDisplayMode(mode) {
+      if (mode === "light") document.documentElement.setAttribute("data-theme", "light");
+      else document.documentElement.removeAttribute("data-theme");
+      saveSettings();
+    }
+
+    function saveSettings() {
+      const s = {
+        darkMode: document.querySelector('input[name="display-mode"]:checked')?.value || "dark",
+      };
+      localStorage.setItem("settings", JSON.stringify(s));
+      showToast("Pengaturan disimpan ✓");
+    }
+
+    function clearAllData() {
+      if (!confirm("Yakin ingin menghapus semua data lokal? Kamu akan tetap login dengan Google.")) return;
+      const userBackup  = localStorage.getItem("user");
+      const loginBackup = localStorage.getItem("loginAt");
+      localStorage.clear();
+      if (userBackup)  localStorage.setItem("user", userBackup);
+      if (loginBackup) localStorage.setItem("loginAt", loginBackup);
+      showToast("Data lokal berhasil dihapus ✓");
+      setTimeout(() => location.reload(), 1000);
+    }
+
+    loadSettings();
+  </script>
+</body>
+</html>

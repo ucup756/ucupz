@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Converter — MyApp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <!-- pdf-lib untuk merge/split/rotate PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <style>
+    /* ── Tool Grid ─────────────────────────────────── */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .tool-card {
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 12px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      user-select: none;
+    }
+    .tool-card:hover  { border-color: var(--accent); background: rgba(124,106,255,0.07); transform: translateY(-2px); }
+    .tool-card.active { border-color: var(--accent); background: rgba(124,106,255,0.13); }
+    .tool-card .tc-icon { font-size: 30px; margin-bottom: 10px; }
+    .tool-card .tc-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+    .tool-card .tc-desc  { font-size: 11px; color: var(--text3); margin-top: 4px; line-height: 1.4; }
+
+    /* ── Tool panel ─────────────────────────────────── */
+    #tool-panel { display: none; }
+    #tool-panel.show { display: block; }
+
+    .panel-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 20px;
+    }
+    .panel-back {
+      background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: 8px; padding: 6px 12px;
+      font-size: 12px; color: var(--text2); cursor: pointer;
+      transition: all var(--transition);
+    }
+    .panel-back:hover { color: var(--text); background: var(--surface); }
+
+    /* ── File list ─────────────────────────────────── */
+    .file-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .file-item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+    }
+    .file-item .fi-icon { font-size: 22px; flex-shrink: 0; }
+    .file-item .fi-name { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-item .fi-size { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+    .file-item .fi-del  { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 2px 4px; flex-shrink: 0; }
+    .file-item .fi-del:hover { color: var(--danger); }
+
+    /* ── Progress ─────────────────────────────────── */
+    .progress-bar {
+      height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin-top: 16px;
+    }
+    .progress-fill {
+      height: 100%; background: var(--accent); border-radius: 2px;
+      transition: width 0.3s ease; width: 0%;
+    }
+
+    /* ── Result download ─────────────────────────────── */
+    .result-box {
+      background: rgba(0,212,168,0.07); border: 1px solid rgba(0,212,168,0.25);
+      border-radius: var(--radius-sm); padding: 16px; margin-top: 16px;
+      display: none;
+    }
+    .result-box.show { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+    /* ── Option rows ─────────────────────────────────── */
+    .option-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap;
+    }
+    .option-row:last-child { border: none; }
+    .opt-label { font-size: 13px; font-weight: 500; color: var(--text); }
+    .opt-desc  { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+    @media (max-width: 768px) {
+      .tool-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .tool-card { padding: 14px 8px 12px; }
+      .tool-card .tc-icon { font-size: 24px; margin-bottom: 6px; }
+      .tool-card .tc-title { font-size: 11px; }
+      .tool-card .tc-desc { display: none; }
+    }
+  </style>
+</head>
+<body class="app-page">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Converter</h1>
+        <p class="page-sub">Tools PDF & gambar — semua proses di browser, tidak ada yang dikirim ke server.</p>
+      </div>
+    </div>
+
+    <!-- ── Grid tool ── -->
+    <div id="tool-grid-section">
+      <p style="font-size:12px;color:var(--text3);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">PDF Tools</p>
+      <div class="tool-grid">
+        <div class="tool-card" onclick="openTool('merge')">
+          <div class="tc-icon">🔗</div>
+          <div class="tc-title">Merge PDF</div>
+          <div class="tc-desc">Gabung beberapa PDF jadi satu</div>
+        </div>
+        <div class="tool-card" onclick="openTool('split')">
+          <div class="tc-icon">✂️</div>
+          <div class="tc-title">Split PDF</div>
+          <div class="tc-desc">Pisah halaman PDF</div>
+        </div>
+        <div class="tool-card" onclick="openTool('rotate')">
+          <div class="tc-icon">🔄</div>
+          <div class="tc-title">Rotate PDF</div>
+          <div class="tc-desc">Putar halaman PDF</div>
+        </div>
+        <div class="tool-card" onclick="openTool('img2pdf')">
+          <div class="tc-icon">🖼</div>
+          <div class="tc-title">JPG ke PDF</div>
+          <div class="tc-desc">Gambar jadi dokumen PDF</div>
+        </div>
+        <div class="tool-card" onclick="openTool('pdf2img')">
+          <div class="tc-icon">📄</div>
+          <div class="tc-title">PDF ke JPG</div>
+          <div class="tc-desc">Tiap halaman jadi gambar</div>
+        </div>
+      </div>
+
+      <p style="font-size:12px;color:var(--text3);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Gambar Tools</p>
+      <div class="tool-grid">
+        <div class="tool-card" onclick="openTool('imgconvert')">
+          <div class="tc-icon">🔁</div>
+          <div class="tc-title">Konversi Format</div>
+          <div class="tc-desc">JPG ↔ PNG ↔ WEBP</div>
+        </div>
+        <div class="tool-card" onclick="openTool('compress')">
+          <div class="tc-icon">🗜</div>
+          <div class="tc-title">Compress Gambar</div>
+          <div class="tc-desc">Perkecil ukuran file</div>
+        </div>
+        <div class="tool-card" onclick="openTool('resize')">
+          <div class="tc-icon">📐</div>
+          <div class="tc-title">Resize Gambar</div>
+          <div class="tc-desc">Ubah dimensi gambar</div>
+        </div>
+        <div class="tool-card" onclick="openTool('grayscale')">
+          <div class="tc-icon">🎨</div>
+          <div class="tc-title">Grayscale</div>
+          <div class="tc-desc">Ubah ke hitam putih</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tool Panel ── -->
+    <div id="tool-panel">
+      <div class="panel-header">
+        <button class="panel-back" onclick="closeTool()">← Kembali</button>
+        <div>
+          <h2 id="panel-title" style="font-size:18px;font-weight:700;color:var(--text)"></h2>
+          <p id="panel-desc" style="font-size:12px;color:var(--text2);margin-top:2px"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <!-- Upload area -->
+        <div class="upload-zone" id="panel-dropzone" onclick="document.getElementById('panel-input').click()">
+          <div class="upload-icon" id="panel-upload-icon">📂</div>
+          <p class="upload-label" id="panel-upload-label">Klik atau seret file ke sini</p>
+          <p class="upload-hint" id="panel-upload-hint">—</p>
+          <input type="file" id="panel-input" style="display:none" onchange="handlePanelFiles(this.files)" />
+        </div>
+
+        <div class="file-list" id="file-list"></div>
+
+        <!-- Opsi per tool -->
+        <div id="tool-options" style="margin-top:16px"></div>
+
+        <!-- Tombol proses -->
+        <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="btn-process" onclick="processFile()" disabled>⚡ Proses</button>
+          <button class="btn btn-secondary" id="btn-clear" onclick="clearFiles()" style="display:none">🗑 Hapus Semua</button>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-bar" id="progress-bar" style="display:none">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <!-- Hasil -->
+        <div class="result-box" id="result-box">
+          <div style="font-size:28px">✅</div>
+          <div style="flex:1">
+            <p style="font-size:14px;font-weight:600;color:var(--text)" id="result-title">Selesai!</p>
+            <p style="font-size:12px;color:var(--text2);margin-top:2px" id="result-desc"></p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="result-buttons"></div>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="work-canvas" style="display:none"></canvas>
+  </main>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    requireLogin();
+    renderSidebar("converter");
+    applyGlobalSettings();
+
+    // ── State ──────────────────────────────────────────────
+    let currentTool = null;
+    let uploadedFiles = [];
+
+    const TOOLS = {
+      merge:      { title: "Merge PDF", desc: "Gabungkan beberapa file PDF menjadi satu dokumen", icon: "🔗", accept: ".pdf", multiple: true,  hint: "Upload 2 atau lebih file PDF" },
+      split:      { title: "Split PDF", desc: "Pisahkan halaman PDF menjadi file terpisah",        icon: "✂️", accept: ".pdf", multiple: false, hint: "Upload 1 file PDF" },
+      rotate:     { title: "Rotate PDF", desc: "Putar semua halaman atau halaman tertentu",         icon: "🔄", accept: ".pdf", multiple: false, hint: "Upload 1 file PDF" },
+      img2pdf:    { title: "JPG / PNG ke PDF", desc: "Susun gambar menjadi dokumen PDF",            icon: "🖼", accept: "image/*", multiple: true,  hint: "Upload satu atau beberapa gambar (JPG, PNG, WEBP)" },
+      pdf2img:    { title: "PDF ke JPG", desc: "Setiap halaman PDF dikonversi menjadi gambar JPG",  icon: "📄", accept: ".pdf", multiple: false, hint: "Upload 1 file PDF" },
+      imgconvert: { title: "Konversi Format Gambar", desc: "Ubah format gambar JPG ↔ PNG ↔ WEBP",   icon: "🔁", accept: "image/*", multiple: false, hint: "Upload 1 file gambar (JPG, PNG, WEBP)" },
+      compress:   { title: "Compress Gambar", desc: "Perkecil ukuran file gambar tanpa kehilangan banyak kualitas", icon: "🗜", accept: "image/*", multiple: false, hint: "Upload 1 file gambar" },
+      resize:     { title: "Resize Gambar", desc: "Ubah dimensi (lebar × tinggi) gambar",           icon: "📐", accept: "image/*", multiple: false, hint: "Upload 1 file gambar" },
+      grayscale:  { title: "Grayscale", desc: "Ubah gambar berwarna menjadi hitam putih",           icon: "🎨", accept: "image/*", multiple: false, hint: "Upload 1 file gambar" },
+    };
+
+    // ── Tool options HTML ──────────────────────────────────
+    const TOOL_OPTIONS = {
+      split: `
+        <div class="option-row">
+          <div><p class="opt-label">Mode split</p><p class="opt-desc">Pisah tiap halaman atau rentang tertentu</p></div>
+          <div class="format-pills">
+            <label class="format-pill"><input type="radio" name="split-mode" value="all" checked /> Semua halaman</label>
+            <label class="format-pill"><input type="radio" name="split-mode" value="range" /> Rentang halaman</label>
+          </div>
+        </div>
+        <div id="split-range-row" style="display:none" class="option-row">
+          <div><p class="opt-label">Halaman (contoh: 1-3, 5, 7-9)</p></div>
+          <input type="text" id="split-range" class="form-input" placeholder="1-3, 5, 7-9" style="max-width:200px" />
+        </div>`,
+      rotate: `
+        <div class="option-row">
+          <div><p class="opt-label">Arah rotasi</p></div>
+          <div class="format-pills">
+            <label class="format-pill"><input type="radio" name="rot-deg" value="90" checked /> 90° ↻</label>
+            <label class="format-pill"><input type="radio" name="rot-deg" value="180" /> 180°</label>
+            <label class="format-pill"><input type="radio" name="rot-deg" value="270" /> 90° ↺</label>
+          </div>
+        </div>`,
+      imgconvert: `
+        <div class="option-row">
+          <div><p class="opt-label">Konversi ke format</p></div>
+          <div class="format-pills">
+            <label class="format-pill"><input type="radio" name="imgfmt" value="image/png" checked /> PNG</label>
+            <label class="format-pill"><input type="radio" name="imgfmt" value="image/jpeg" /> JPG</label>
+            <label class="format-pill"><input type="radio" name="imgfmt" value="image/webp" /> WEBP</label>
+          </div>
+        </div>`,
+      compress: `
+        <div class="option-row">
+          <div><p class="opt-label">Kualitas: <span id="cq-val">70</span>%</p><p class="opt-desc">Makin kecil = makin kecil ukuran file</p></div>
+          <input type="range" id="compress-quality" min="10" max="95" value="70" class="slider" style="width:160px"
+            oninput="document.getElementById('cq-val').textContent=this.value" />
+        </div>`,
+      resize: `
+        <div class="option-row">
+          <div><p class="opt-label">Lebar (px)</p></div>
+          <input type="number" id="resize-w" class="form-input" placeholder="misal 800" style="max-width:120px" min="1" />
+        </div>
+        <div class="option-row">
+          <div><p class="opt-label">Tinggi (px)</p><p class="opt-desc">Kosongkan untuk menjaga rasio</p></div>
+          <input type="number" id="resize-h" class="form-input" placeholder="otomatis" style="max-width:120px" min="1" />
+        </div>`,
+      img2pdf: `
+        <div class="option-row">
+          <div><p class="opt-label">Ukuran halaman PDF</p></div>
+          <div class="format-pills">
+            <label class="format-pill"><input type="radio" name="pdf-page" value="fit" checked /> Sesuai gambar</label>
+            <label class="format-pill"><input type="radio" name="pdf-page" value="a4" /> A4</label>
+          </div>
+        </div>`,
+      pdf2img: `
+        <div class="option-row">
+          <div><p class="opt-label">Skala render</p><p class="opt-desc">Makin tinggi = makin jernih tapi lebih lama</p></div>
+          <div class="format-pills">
+            <label class="format-pill"><input type="radio" name="pdf-scale" value="1.5" /> Normal</label>
+            <label class="format-pill"><input type="radio" name="pdf-scale" value="2" checked /> HD</label>
+            <label class="format-pill"><input type="radio" name="pdf-scale" value="3" /> Full HD</label>
+          </div>
+        </div>`,
+    };
+
+    // ── Navigation ──────────────────────────────────────────
+    function openTool(id) {
+      currentTool = id;
+      uploadedFiles = [];
+      const t = TOOLS[id];
+      document.getElementById("tool-grid-section").style.display = "none";
+      document.getElementById("panel-title").textContent  = t.title;
+      document.getElementById("panel-desc").textContent   = t.desc;
+      document.getElementById("panel-upload-icon").textContent = t.icon;
+      document.getElementById("panel-upload-hint").textContent = t.hint;
+      document.getElementById("panel-input").accept    = t.accept;
+      document.getElementById("panel-input").multiple  = t.multiple;
+      document.getElementById("panel-input").value     = "";
+      document.getElementById("file-list").innerHTML   = "";
+      document.getElementById("tool-options").innerHTML = TOOL_OPTIONS[id] || "";
+      document.getElementById("btn-process").disabled  = true;
+      document.getElementById("btn-clear").style.display = "none";
+      document.getElementById("result-box").classList.remove("show");
+      document.getElementById("progress-bar").style.display = "none";
+      document.getElementById("panel-dropzone").style.display = "block";
+      document.getElementById("tool-panel").classList.add("show");
+
+      // Split range toggle
+      if (id === "split") {
+        document.querySelectorAll('input[name="split-mode"]').forEach(r => {
+          r.addEventListener("change", () => {
+            document.getElementById("split-range-row").style.display =
+              r.value === "range" && r.checked ? "flex" : "none";
+          });
+        });
+      }
+    }
+
+    function closeTool() {
+      currentTool = null;
+      uploadedFiles = [];
+      document.getElementById("tool-panel").classList.remove("show");
+      document.getElementById("tool-grid-section").style.display = "block";
+    }
+
+    // ── File handling ───────────────────────────────────────
+    function handlePanelFiles(fileList) {
+      const t = TOOLS[currentTool];
+      if (!t.multiple) uploadedFiles = [];
+      for (const f of fileList) uploadedFiles.push(f);
+      renderFileList();
+    }
+
+    function renderFileList() {
+      const list = document.getElementById("file-list");
+      list.innerHTML = uploadedFiles.map((f, i) => `
+        <div class="file-item">
+          <span class="fi-icon">${f.type.includes("pdf") ? "📄" : "🖼"}</span>
+          <span class="fi-name">${f.name}</span>
+          <span class="fi-size">${fmtSize(f.size)}</span>
+          <button class="fi-del" onclick="removeFile(${i})">✕</button>
+        </div>`).join("");
+      document.getElementById("btn-process").disabled = uploadedFiles.length === 0;
+      document.getElementById("btn-clear").style.display = uploadedFiles.length > 0 ? "inline-flex" : "none";
+      document.getElementById("result-box").classList.remove("show");
+    }
+
+    function removeFile(idx) {
+      uploadedFiles.splice(idx, 1);
+      renderFileList();
+    }
+
+    function clearFiles() {
+      uploadedFiles = [];
+      document.getElementById("panel-input").value = "";
+      renderFileList();
+    }
+
+    // ── Progress helper ─────────────────────────────────────
+    function setProgress(pct) {
+      document.getElementById("progress-bar").style.display = "block";
+      document.getElementById("progress-fill").style.width  = pct + "%";
+    }
+
+    function showResult(title, desc, downloads) {
+      // downloads: [{label, blob, filename}]
+      document.getElementById("result-title").textContent = title;
+      document.getElementById("result-desc").textContent  = desc;
+      const btns = document.getElementById("result-buttons");
+      btns.innerHTML = downloads.map((d, i) =>
+        `<button class="btn btn-primary" style="font-size:12px;padding:7px 14px" onclick="triggerDownload(${i})">⬇ ${d.label}</button>`
+      ).join("");
+      window._downloads = downloads;
+      document.getElementById("result-box").classList.add("show");
+      setProgress(100);
+    }
+
+    function triggerDownload(i) {
+      const d = window._downloads[i];
+      const a = document.createElement("a");
+      a.href     = URL.createObjectURL(d.blob);
+      a.download = d.filename;
+      a.click();
+      showToast("File diunduh ✓");
+    }
+
+    // ── Main process dispatcher ────────────────────────────
+    async function processFile() {
+      if (!currentTool || uploadedFiles.length === 0) return;
+      document.getElementById("btn-process").disabled = true;
+      document.getElementById("result-box").classList.remove("show");
+      setProgress(10);
+      try {
+        await ({ merge, split, rotate, img2pdf, pdf2img, imgconvert, compress, resize, grayscale })[currentTool]();
+      } catch (e) {
+        showToast("Gagal memproses: " + e.message, "error");
+        console.error(e);
+        setProgress(0);
+        document.getElementById("progress-bar").style.display = "none";
+      }
+      document.getElementById("btn-process").disabled = false;
+    }
+
+    // ── PDF: Merge ──────────────────────────────────────────
+    async function merge() {
+      if (uploadedFiles.length < 2) { showToast("Upload minimal 2 file PDF", "error"); return; }
+      const { PDFDocument } = PDFLib;
+      const merged = await PDFDocument.create();
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        setProgress(10 + Math.round((i / uploadedFiles.length) * 80));
+        const buf  = await uploadedFiles[i].arrayBuffer();
+        const doc  = await PDFDocument.load(buf);
+        const pages = await merged.copyPages(doc, doc.getPageIndices());
+        pages.forEach(p => merged.addPage(p));
+      }
+      setProgress(95);
+      const bytes = await merged.save();
+      showResult("PDF berhasil digabung!", `${uploadedFiles.length} file → 1 PDF (${merged.getPageCount()} halaman)`,
+        [{ label: "Unduh PDF", blob: new Blob([bytes], { type: "application/pdf" }), filename: "merged.pdf" }]);
+    }
+
+    // ── PDF: Split ──────────────────────────────────────────
+    async function split() {
+      const { PDFDocument } = PDFLib;
+      const buf  = await uploadedFiles[0].arrayBuffer();
+      const doc  = await PDFDocument.load(buf);
+      const total = doc.getPageCount();
+      const mode  = document.querySelector('input[name="split-mode"]:checked').value;
+
+      let pageRanges = [];
+      if (mode === "all") {
+        pageRanges = Array.from({ length: total }, (_, i) => [i]);
+      } else {
+        const raw = document.getElementById("split-range").value;
+        pageRanges = parseRanges(raw, total);
+        if (!pageRanges.length) { showToast("Format rentang tidak valid", "error"); return; }
+      }
+
+      setProgress(20);
+      const downloads = [];
+      for (let r = 0; r < pageRanges.length; r++) {
+        setProgress(20 + Math.round((r / pageRanges.length) * 70));
+        const newDoc = await PDFDocument.create();
+        const copied = await newDoc.copyPages(doc, pageRanges[r]);
+        copied.forEach(p => newDoc.addPage(p));
+        const bytes = await newDoc.save();
+        const label = mode === "all" ? `Halaman ${pageRanges[r][0]+1}` : `Bagian ${r+1}`;
+        downloads.push({ label, blob: new Blob([bytes], { type: "application/pdf" }),
+          filename: `split_${r+1}.pdf` });
+      }
+      showResult("PDF berhasil dipecah!", `${pageRanges.length} file dihasilkan dari ${total} halaman`, downloads);
+    }
+
+    function parseRanges(str, total) {
+      const parts = str.split(",").map(s => s.trim()).filter(Boolean);
+      const result = [];
+      for (const p of parts) {
+        const m = p.match(/^(\d+)(?:-(\d+))?$/);
+        if (!m) return [];
+        const a = parseInt(m[1]) - 1;
+        const b = m[2] ? parseInt(m[2]) - 1 : a;
+        if (a < 0 || b >= total || a > b) return [];
+        const pages = [];
+        for (let i = a; i <= b; i++) pages.push(i);
+        result.push(pages);
+      }
+      return result;
+    }
+
+    // ── PDF: Rotate ─────────────────────────────────────────
+    async function rotate() {
+      const { PDFDocument, degrees } = PDFLib;
+      const buf  = await uploadedFiles[0].arrayBuffer();
+      const doc  = await PDFDocument.load(buf);
+      const deg  = parseInt(document.querySelector('input[name="rot-deg"]:checked').value);
+      setProgress(40);
+      doc.getPages().forEach(p => p.setRotation(degrees((p.getRotation().angle + deg) % 360)));
+      setProgress(80);
+      const bytes = await doc.save();
+      const name  = uploadedFiles[0].name.replace(".pdf", "") + "_rotated.pdf";
+      showResult("PDF berhasil dirotasi!", `Semua halaman diputar ${deg}°`,
+        [{ label: "Unduh PDF", blob: new Blob([bytes], { type: "application/pdf" }), filename: name }]);
+    }
+
+    // ── IMG → PDF ────────────────────────────────────────────
+    async function img2pdf() {
+      const { PDFDocument } = PDFLib;
+      const pdfDoc  = await PDFDocument.create();
+      const fitMode = document.querySelector('input[name="pdf-page"]:checked').value;
+      const A4_W = 595, A4_H = 842;
+
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        setProgress(10 + Math.round((i / uploadedFiles.length) * 80));
+        const f    = uploadedFiles[i];
+        const buf  = await f.arrayBuffer();
+        let imgEmbed, imgDims;
+        if (f.type === "image/png") {
+          imgEmbed = await pdfDoc.embedPng(buf);
+        } else {
+          // convert to jpeg via canvas
+          const blob = await canvasConvert(f, "image/jpeg", 0.92);
+          imgEmbed = await pdfDoc.embedJpg(await blob.arrayBuffer());
+        }
+        imgDims = imgEmbed.scale(1);
+        let pw = imgDims.width, ph = imgDims.height;
+        if (fitMode === "a4") {
+          const scale = Math.min(A4_W / pw, A4_H / ph);
+          pw = pw * scale; ph = ph * scale;
+          const page = pdfDoc.addPage([A4_W, A4_H]);
+          const x = (A4_W - pw) / 2, y = (A4_H - ph) / 2;
+          page.drawImage(imgEmbed, { x, y, width: pw, height: ph });
+        } else {
+          const page = pdfDoc.addPage([pw, ph]);
+          page.drawImage(imgEmbed, { x: 0, y: 0, width: pw, height: ph });
+        }
+      }
+      setProgress(95);
+      const bytes = await pdfDoc.save();
+      showResult("Gambar berhasil diubah ke PDF!", `${uploadedFiles.length} gambar → ${pdfDoc.getPageCount()} halaman`,
+        [{ label: "Unduh PDF", blob: new Blob([bytes], { type: "application/pdf" }), filename: "images.pdf" }]);
+    }
+
+    // ── PDF → IMG ────────────────────────────────────────────
+    async function pdf2img() {
+      if (!window.pdfjsLib) {
+        // lazy load pdf.js
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      }
+      const scale  = parseFloat(document.querySelector('input[name="pdf-scale"]:checked').value);
+      const buf    = await uploadedFiles[0].arrayBuffer();
+      const pdf    = await pdfjsLib.getDocument({ data: buf }).promise;
+      const total  = pdf.numPages;
+      const downloads = [];
+      const canvas = document.getElementById("work-canvas");
+      const ctx    = canvas.getContext("2d");
+
+      for (let i = 1; i <= total; i++) {
+        setProgress(10 + Math.round((i / total) * 85));
+        const page     = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale });
+        canvas.width   = viewport.width;
+        canvas.height  = viewport.height;
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        const blob = await new Promise(res => canvas.toBlob(res, "image/jpeg", 0.92));
+        downloads.push({ label: `Hal. ${i}`, blob, filename: `page_${i}.jpg` });
+      }
+      showResult("PDF berhasil dikonversi!", `${total} halaman → ${total} file JPG`, downloads);
+    }
+
+    // ── Img Convert ─────────────────────────────────────────
+    async function imgconvert() {
+      const file  = uploadedFiles[0];
+      const fmt   = document.querySelector('input[name="imgfmt"]:checked').value;
+      const ext   = fmt === "image/jpeg" ? "jpg" : fmt.split("/")[1];
+      setProgress(40);
+      const blob  = await canvasConvert(file, fmt, 0.92);
+      setProgress(95);
+      const name  = file.name.replace(/\.[^.]+$/, "") + "." + ext;
+      showResult("Format berhasil dikonversi!", `${file.name} → ${ext.toUpperCase()}`,
+        [{ label: `Unduh ${ext.toUpperCase()}`, blob, filename: name }]);
+    }
+
+    // ── Compress ────────────────────────────────────────────
+    async function compress() {
+      const file    = uploadedFiles[0];
+      const quality = parseInt(document.getElementById("compress-quality").value) / 100;
+      setProgress(40);
+      const blob = await canvasConvert(file, "image/jpeg", quality);
+      setProgress(95);
+      const saved = Math.round((1 - blob.size / file.size) * 100);
+      const name  = file.name.replace(/\.[^.]+$/, "") + "_compressed.jpg";
+      showResult("Gambar berhasil dikompres!", `${fmtSize(file.size)} → ${fmtSize(blob.size)} (hemat ${saved}%)`,
+        [{ label: "Unduh JPG", blob, filename: name }]);
+    }
+
+    // ── Resize ──────────────────────────────────────────────
+    async function resize() {
+      const file = uploadedFiles[0];
+      const newW = parseInt(document.getElementById("resize-w").value);
+      const newH = parseInt(document.getElementById("resize-h").value) || 0;
+      if (!newW) { showToast("Masukkan lebar target!", "error"); return; }
+      setProgress(30);
+      const bitmap = await createImageBitmap(file);
+      const ratio  = bitmap.height / bitmap.width;
+      const finalH = newH || Math.round(newW * ratio);
+      const canvas = document.getElementById("work-canvas");
+      canvas.width  = newW;
+      canvas.height = finalH;
+      canvas.getContext("2d").drawImage(bitmap, 0, 0, newW, finalH);
+      setProgress(80);
+      const blob = await new Promise(res => canvas.toBlob(res, "image/jpeg", 0.92));
+      const name = file.name.replace(/\.[^.]+$/, "") + `_${newW}x${finalH}.jpg`;
+      showResult("Gambar berhasil di-resize!", `${bitmap.width}×${bitmap.height} → ${newW}×${finalH}px`,
+        [{ label: "Unduh JPG", blob, filename: name }]);
+    }
+
+    // ── Grayscale ───────────────────────────────────────────
+    async function grayscale() {
+      const file   = uploadedFiles[0];
+      setProgress(30);
+      const bitmap = await createImageBitmap(file);
+      const canvas = document.getElementById("work-canvas");
+      canvas.width  = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext("2d");
+      ctx.filter = "grayscale(1)";
+      ctx.drawImage(bitmap, 0, 0);
+      ctx.filter = "none";
+      setProgress(80);
+      const ext  = file.type === "image/png" ? "image/png" : "image/jpeg";
+      const blob = await new Promise(res => canvas.toBlob(res, ext, 0.92));
+      const name = file.name.replace(/\.[^.]+$/, "") + "_grayscale." + (ext === "image/png" ? "png" : "jpg");
+      showResult("Gambar berhasil diubah ke grayscale!", `${fmtSize(file.size)} → ${fmtSize(blob.size)}`,
+        [{ label: "Unduh", blob, filename: name }]);
+    }
+
+    // ── Helpers ─────────────────────────────────────────────
+    async function canvasConvert(file, mimeType, quality) {
+      const bitmap = await createImageBitmap(file);
+      const canvas = document.getElementById("work-canvas");
+      canvas.width  = bitmap.width;
+      canvas.height = bitmap.height;
+      canvas.getContext("2d").drawImage(bitmap, 0, 0);
+      return new Promise(res => canvas.toBlob(res, mimeType, quality));
+    }
+
+    function loadScript(src) {
+      return new Promise((res, rej) => {
+        const s  = document.createElement("script");
+        s.src    = src;
+        s.onload = res;
+        s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    function fmtSize(b) {
+      if (b < 1024) return b + " B";
+      if (b < 1048576) return (b/1024).toFixed(1) + " KB";
+      return (b/1048576).toFixed(2) + " MB";
+    }
+
+    // ── Drag & Drop ─────────────────────────────────────────
+    const dz = document.getElementById("panel-dropzone");
+    dz.addEventListener("dragover",  e => { e.preventDefault(); dz.classList.add("drag-over"); });
+    dz.addEventListener("dragleave", () => dz.classList.remove("drag-over"));
+    dz.addEventListener("drop",      e => {
+      e.preventDefault(); dz.classList.remove("drag-over");
+      handlePanelFiles(e.dataTransfer.files);
+    });
+  </script>
+</body>
+</html>

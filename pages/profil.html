@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil — MyApp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+</head>
+<body class="app-page">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Profil</h1>
+        <p class="page-sub">Lihat dan edit informasi profilmu.</p>
+      </div>
+    </div>
+
+    <!-- Kartu profil -->
+    <div class="profile-hero card">
+      <div class="profile-avatar-wrap">
+        <img id="profile-pic" src="" alt="Foto profil" class="profile-pic" />
+        <span class="profile-badge-online"></span>
+      </div>
+      <div class="profile-meta">
+        <h2 id="display-name" class="profile-name">—</h2>
+        <p id="display-email" class="profile-email">—</p>
+        <span class="badge badge-accent" id="display-role">Member</span>
+      </div>
+    </div>
+
+    <!-- Form edit -->
+    <div class="card" style="margin-top:20px">
+      <h3 class="section-title">Edit Profil</h3>
+      <div class="divider"></div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nama Tampilan</label>
+          <input id="input-displayname" type="text" class="form-input" placeholder="Nama kamu..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input id="input-username" type="text" class="form-input" placeholder="@username" />
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Bio</label>
+          <textarea id="input-bio" class="form-input" rows="3" placeholder="Ceritakan sedikit tentang dirimu..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lokasi</label>
+          <input id="input-lokasi" type="text" class="form-input" placeholder="Kota, Negara" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input id="input-website" type="url" class="form-input" placeholder="https://..." />
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-top:20px">
+        <button class="btn btn-primary" onclick="saveProfile()">Simpan Perubahan</button>
+      </div>
+    </div>
+
+    <!-- Info akun Google -->
+    <div class="card" style="margin-top:20px">
+      <h3 class="section-title">Akun Google</h3>
+      <div class="divider"></div>
+      <div class="info-row">
+        <span class="info-label">Email Google</span>
+        <span id="google-email" class="info-value">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Login Terakhir</span>
+        <span id="last-login" class="info-value">—</span>
+      </div>
+      <div class="info-row" style="border:none">
+        <span class="info-label">Status Akun</span>
+        <span class="badge badge-success">Aktif</span>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    const user = requireLogin();
+    renderSidebar("profil");
+    applyGlobalSettings();
+
+    function loadProfile() {
+      const saved = JSON.parse(localStorage.getItem("profile") || "{}");
+
+      document.getElementById("profile-pic").src       = user.picture || "";
+      document.getElementById("display-name").textContent  = saved.displayName || user.name || "—";
+      document.getElementById("display-email").textContent = user.email || "—";
+      document.getElementById("google-email").textContent  = user.email || "—";
+
+      document.getElementById("input-displayname").value = saved.displayName || user.name || "";
+      document.getElementById("input-username").value    = saved.username || "";
+      document.getElementById("input-bio").value         = saved.bio || "";
+      document.getElementById("input-lokasi").value      = saved.lokasi || "";
+      document.getElementById("input-website").value     = saved.website || "";
+
+      const loginAt = localStorage.getItem("loginAt");
+      if (loginAt) {
+        document.getElementById("last-login").textContent =
+          new Date(loginAt).toLocaleString("id-ID", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" });
+      }
+    }
+
+    function saveProfile() {
+      const profile = {
+        displayName: document.getElementById("input-displayname").value.trim(),
+        username:    document.getElementById("input-username").value.trim(),
+        bio:         document.getElementById("input-bio").value.trim(),
+        lokasi:      document.getElementById("input-lokasi").value.trim(),
+        website:     document.getElementById("input-website").value.trim(),
+      };
+      localStorage.setItem("profile", JSON.stringify(profile));
+      document.getElementById("display-name").textContent = profile.displayName || user.name;
+      showToast("Profil berhasil disimpan ✓");
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>
