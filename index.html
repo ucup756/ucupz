@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyApp — Login</title>
+
+  <!-- Preconnect agar DNS resolve lebih awal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://accounts.google.com" crossorigin />
+
+  <!-- Hanya load 1 font weight per family yang dipakai di login -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- CSS variabel minimal — tidak load style.css penuh -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:  #7c6aff;
+      --accent2: #a89bff;
+      --pink:    #ff6ab0;
+      --teal:    #00d4a8;
+      --bg:      #0e0e1a;
+      --bg2:     #161628;
+      --border:  rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --text:    #f0f0ff;
+      --text2:   #9090b8;
+      --text3:   #5a5a80;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Background — pakai CSS gradient statis, bukan animasi blob berat */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 10% 10%, rgba(124,106,255,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 45% at 90% 90%, rgba(255,106,176,0.13) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,212,168,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Card */
+    .login-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+      padding: 24px;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-card {
+      background: rgba(22, 22, 42, 0.85);
+      border: 1px solid var(--border2);
+      border-radius: 24px;
+      padding: 40px 36px;
+      /* backdrop-filter hanya aktif di desktop — di mobile mahal */
+      will-change: auto;
+    }
+
+    @media (min-width: 600px) {
+      .login-card {
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        box-shadow: 0 32px 64px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+      }
+    }
+
+    /* Badge */
+    .login-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(124,106,255,0.12);
+      border: 1px solid rgba(124,106,255,0.25);
+      border-radius: 20px;
+      padding: 4px 12px 4px 8px;
+      margin-bottom: 26px;
+    }
+    .badge-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 7px var(--accent);
+    }
+    .badge-text {
+      font-size: 12px; font-weight: 600;
+      color: var(--accent2);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Judul */
+    .login-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .login-title span {
+      background: linear-gradient(135deg, var(--accent2), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .login-sub {
+      font-size: 14px;
+      color: var(--text2);
+      margin-bottom: 28px;
+      line-height: 1.55;
+    }
+    .login-divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 26px;
+    }
+
+    /* Google button wrapper */
+    .g_id_signin { display: flex; justify-content: center; }
+
+    /* Fallback saat GSI belum load */
+    #gsi-loading {
+      text-align: center;
+      padding: 14px;
+      color: var(--text3);
+      font-size: 13px;
+    }
+    #gsi-loading .dots::after {
+      content: ''; animation: dots 1.2s steps(3, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: '.'; }
+      33%  { content: '..'; }
+      66%  { content: '...'; }
+      100% { content: ''; }
+    }
+
+    .login-note {
+      font-size: 11px;
+      color: var(--text3);
+      text-align: center;
+      margin-top: 18px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 440px) {
+      .login-card  { padding: 28px 22px; border-radius: 18px; }
+      .login-title { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="login-container">
+    <div class="login-card">
+
+      <div class="login-badge">
+        <span class="badge-dot"></span>
+        <span class="badge-text">MyApp</span>
+      </div>
+
+      <h1 class="login-title">UCUPZ<br/><span>Converter</span></h1>
+      <p class="login-sub">Convert file, ubah gambar jadi ASCII art, dan kelola profilmu dalam satu tempat.</p>
+
+      <div class="login-divider"></div>
+
+      <!-- Indikator fallback saat GSI belum siap -->
+      <div id="gsi-loading">Memuat tombol login<span class="dots"></span></div>
+
+      <div id="g_id_onload"
+        data-client_id="438060631154-skhv5ldhr9o738bmu0goa6nslj5pmq06.apps.googleusercontent.com"
+        data-callback="handleLogin"
+        data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+        data-type="standard"
+        data-shape="rectangular"
+        data-theme="outline"
+        data-text="signin_with"
+        data-size="large"
+        data-width="300">
+      </div>
+
+      <p class="login-note">Dengan masuk, kamu menyetujui syarat & ketentuan layanan ini.</p>
+    </div>
+  </main>
+
+  <!-- auth.js dulu sebelum GSI agar handleLogin siap -->
+  <script src="js/auth.js"></script>
+
+  <!-- GSI load terakhir, non-blocking -->
+  <script>
+    // Sembunyikan loading indicator begitu GSI siap
+    window.onGoogleLibraryLoad = function() {
+      const el = document.getElementById("gsi-loading");
+      if (el) el.style.display = "none";
+    };
+
+    // Timeout fallback: kalau 5 detik GSI tidak load, tampilkan pesan error
+    setTimeout(() => {
+      const el = document.getElementById("gsi-loading");
+      if (el && el.style.display !== "none") {
+        el.innerHTML = '⚠️ Gagal memuat tombol login. Periksa koneksi internet kamu.';
+        el.style.color = '#ff6b6b';
+      }
+    }, 5000);
+  </script>
+  <script src="https://accounts.google.com/gsi/client" async defer
+    onload="window.onGoogleLibraryLoad && window.onGoogleLibraryLoad()"></script>
+</body>
+</html>
