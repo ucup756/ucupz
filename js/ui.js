@@ -38,7 +38,7 @@ function renderSidebar(activePage) {
   const sidebarHTML = `
     <div class="sidebar-brand">
       <div class="brand-icon">✦</div>
-      <span class="brand-name">Ucupz<br>Converter</span>
+      <span class="brand-name">UcupzConvert</span>
     </div>
 
     <p class="nav-section-label">Menu</p>
