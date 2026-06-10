@@ -303,9 +303,9 @@
           <div class="tc-desc">Susun jadi satu canvas</div>
         </div>
         <div class="tool-card" onclick="openTool('ascii')">
-					<div class="tc-icon">🎨</div>
-					<div class="tc-title">ASCII Art</div>
-					<div class="tc-desc">Gambar ke karakter teks</div>
+          <div class="tc-icon">🎨</div>
+          <div class="tc-title">ASCII Art</div>
+          <div class="tc-desc">Gambar ke karakter teks</div>
         </div>
       </div>
 
@@ -418,10 +418,10 @@
       exif:        { title:"EXIF Viewer & Remover", desc:"Lihat metadata foto dan hapus untuk privasi",     icon:"📋", accept:"image/jpeg,image/jpg", multiple:false, hint:"Upload 1 file gambar JPG" },
       base64img:   { title:"Gambar → Base64",   desc:"Encode gambar menjadi string Base64 untuk embed HTML", icon:"🔤", accept:"image/*", multiple:false, hint:"Upload 1 file gambar" },
       mergeimg:    { title:"Gabung Gambar",     desc:"Susun beberapa gambar horizontal/vertikal jadi satu", icon:"🧩", accept:"image/*",  multiple:true,  hint:"Upload 2 gambar atau lebih" },
+      ascii:       { title:"Gambar ke ASCII Art", desc:"Ubah gambar menjadi karakter teks ASCII yang bisa di-copy atau diunduh", icon:"🎨", accept:"image/*", multiple:false, hint:"Upload 1 file gambar (JPG, PNG, WEBP)" },
       // Dokumen
       md2html:     { title:"Markdown → HTML",   desc:"Konversi file .md menjadi halaman HTML siap pakai",  icon:"📝", accept:".md,.txt", multiple:false, hint:"Upload file .md atau .txt berisi Markdown" },
       csv2json:    { title:"CSV ↔ JSON",        desc:"Konversi data CSV ke JSON atau sebaliknya",           icon:"📊", accept:".csv,.json", multiple:false, hint:"Upload file .csv atau .json" },
-			ascii: { title:"Gambar ke ASCII Art", desc:"Ubah gambar menjadi karakter teks ASCII", icon:"🎨", accept:"image/*", multiple:false, hint:"Upload 1 file gambar (JPG, PNG, WEBP)" },
     };
 
     // ── Tool options HTML ──────────────────────────────────
@@ -628,6 +628,42 @@
             <label class="format-pill"><input type="radio" name="cj-mode" value="json2csv" /> JSON → CSV</label>
           </div>
         </div>`,
+      ascii:`
+        <div class="option-row">
+          <div><p class="opt-label">Lebar: <span id="ascii-width-val">80</span> kolom</p></div>
+          <input type="range" id="ascii-width" min="40" max="200" value="80" class="slider" style="width:140px"
+            oninput="document.getElementById('ascii-width-val').textContent=this.value" />
+        </div>
+        <div class="option-row">
+          <div><p class="opt-label">Karakter set</p></div>
+          <div class="format-pills">
+            <label class="format-pill"><input type="radio" name="ascii-charset" value="detailed" checked /> Detail</label>
+            <label class="format-pill"><input type="radio" name="ascii-charset" value="simple" /> Simpel</label>
+            <label class="format-pill"><input type="radio" name="ascii-charset" value="blocks" /> Blok</label>
+            <label class="format-pill"><input type="radio" name="ascii-charset" value="emoji" /> Emoji</label>
+          </div>
+        </div>
+        <div class="option-row">
+          <div><p class="opt-label">Mode warna</p></div>
+          <div class="format-pills">
+            <label class="format-pill"><input type="radio" name="ascii-color" value="bw" checked /> Hitam putih</label>
+            <label class="format-pill"><input type="radio" name="ascii-color" value="color" /> Berwarna</label>
+          </div>
+        </div>
+        <div class="option-row" style="border:none">
+          <div><p class="opt-label">Balik warna</p><p class="opt-desc">Cocok untuk background gelap</p></div>
+          <label class="toggle">
+            <input type="checkbox" id="ascii-invert" />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div id="ascii-result-wrap" style="display:none;margin-top:12px">
+          <pre id="ascii-output-pre" style="font-family:var(--font-mono);font-size:7px;line-height:1.1;overflow-x:auto;white-space:pre;color:var(--text);background:var(--bg);padding:12px;border-radius:8px;max-height:400px;overflow-y:auto"></pre>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn btn-secondary" onclick="asciiCopyWA()" style="font-size:12px;padding:6px 12px">📱 Copy WA</button>
+            <button class="btn btn-secondary" onclick="asciiCopy()" style="font-size:12px;padding:6px 12px">📋 Copy Teks</button>
+          </div>
+        </div>`,
     };
 
     // ── Category filter ────────────────────────────────────
@@ -713,7 +749,7 @@
 
     // Setelah file masuk: tunjukkan preview gambar jika relevan
     function onFilesReady() {
-      const imgTools = ["compress","resize","crop","rotate_img","adjust","grayscale","blur","watermarkimg","exif","base64img","imgconvert","mergeimg"];
+      const imgTools = ["compress","resize","crop","rotate_img","adjust","grayscale","blur","watermarkimg","exif","base64img","imgconvert","mergeimg","ascii"];
       if (imgTools.includes(currentTool) && uploadedFiles.length > 0 && uploadedFiles[0].type.startsWith("image/")) {
         const url = URL.createObjectURL(uploadedFiles[0]);
         const preview = document.getElementById("img-source-preview");
@@ -768,7 +804,7 @@
     const handlers = {
       merge, split, rotate, deletepages, compresspdf, watermarkpdf, passwordpdf, pdf2txt, img2pdf, pdf2img,
       imgconvert, compress, resize, crop: cropImg, rotate_img, adjust: adjustImg, grayscale, blur: blurImg,
-      watermarkimg, exif: exifTool, base64img, mergeimg, md2html, csv2json,
+      watermarkimg, exif: exifTool, base64img, mergeimg, md2html, csv2json, ascii: asciiArt,
     };
 
     async function processFile() {
@@ -1419,7 +1455,6 @@
       showResult("Gambar berhasil digabung!", `${bitmaps.length} gambar → ${canvas.width}×${canvas.height}px`,
         [{ label:"Unduh JPG", blob, filename:"merged_image.jpg" }]);
     }
-		
 
     // ════════════════════════════════════════════════
     // DOKUMEN TOOLS
@@ -1512,6 +1547,124 @@
     }
 
     // ════════════════════════════════════════════════
+    // ASCII ART
+    // ════════════════════════════════════════════════
+
+    const ASCII_CHARSETS = {
+      detailed: ' .\'`^",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$'.split('').reverse(),
+      simple:   ' .:-=+*#%@'.split('').reverse(),
+      blocks:   ' ░▒▓█'.split('').reverse(),
+      emoji:    ['  ','🌑','🌒','🌓','🌔','🌕'],
+    };
+
+    async function asciiArt() {
+      const file    = uploadedFiles[0];
+      const width   = parseInt(document.getElementById("ascii-width").value);
+      const charset = document.querySelector('input[name="ascii-charset"]:checked').value;
+      const colored = document.querySelector('input[name="ascii-color"]:checked').value === "color";
+      const invert  = document.getElementById("ascii-invert").checked;
+      const chars   = ASCII_CHARSETS[charset];
+
+      const bitmap  = await createImageBitmap(file);
+      const canvas  = document.getElementById("work-canvas");
+      const aspectFix = 0.45;
+      const height  = Math.round(width * (bitmap.height / bitmap.width) * aspectFix);
+      canvas.width  = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bitmap, 0, 0, width, height);
+      const pixels = ctx.getImageData(0, 0, width, height).data;
+
+      setProgress(60);
+
+      const output = document.getElementById("ascii-output-pre");
+
+      if (colored) {
+        let html = "";
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const i  = (y * width + x) * 4;
+            const r  = pixels[i], g = pixels[i+1], b = pixels[i+2];
+            const br = (0.299*r + 0.587*g + 0.114*b) / 255;
+            const ch = chars[Math.floor(br * (chars.length - 1))];
+            html += `<span style="color:rgb(${r},${g},${b})">${ch}</span>`;
+          }
+          html += "\n";
+        }
+        output.innerHTML = html;
+      } else {
+        let text = "";
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const i  = (y * width + x) * 4;
+            let br   = (0.299*pixels[i] + 0.587*pixels[i+1] + 0.114*pixels[i+2]) / 255;
+            if (invert) br = 1 - br;
+            text += chars[Math.floor(br * (chars.length - 1))];
+          }
+          text += "\n";
+        }
+        output.textContent = text;
+      }
+
+      setProgress(90);
+      document.getElementById("ascii-result-wrap").style.display = "block";
+
+      // Siapkan unduhan PNG & TXT via showResult
+      const rawText = output.textContent || output.innerText;
+      const txtBlob = new Blob([rawText], { type:"text/plain" });
+      const pngBlob = await asciiToPng(output, invert, colored);
+      showResult("ASCII Art berhasil dibuat!", `${width} kolom × ${height} baris`,
+        [
+          { label:"Unduh TXT", blob:txtBlob, filename:"ascii-art.txt" },
+          { label:"Unduh PNG", blob:pngBlob, filename:"ascii-art.png" },
+        ]);
+    }
+
+    async function asciiToPng(preEl, invert, colored) {
+      const text   = preEl.textContent || preEl.innerText;
+      const lines  = text.split("\n");
+      const FS     = 11, LH = FS * 1.1, CW = FS * 0.605, PAD = 20;
+      const maxCol = Math.max(...lines.map(l=>l.length));
+      const ec     = document.getElementById("work-canvas2");
+      ec.width     = Math.round(maxCol * CW + PAD * 2);
+      ec.height    = Math.round(lines.length * LH + PAD * 2);
+      const ctx    = ec.getContext("2d");
+      ctx.fillStyle = (invert && !colored) ? "#000" : "#fff";
+      ctx.fillRect(0, 0, ec.width, ec.height);
+      ctx.font = `${FS}px 'JetBrains Mono','Courier New',monospace`;
+      ctx.textBaseline = "top";
+      if (colored) {
+        const spans = preEl.querySelectorAll("span");
+        let si = 0;
+        for (let y = 0; y < lines.length; y++) {
+          for (let x = 0; x < lines[y].length; x++) {
+            const sp = spans[si++];
+            if (sp) { ctx.fillStyle = sp.style.color || "#000"; ctx.fillText(sp.textContent, PAD + x*CW, PAD + y*LH); }
+          }
+        }
+      } else {
+        ctx.fillStyle = invert ? "#e8e8e8" : "#111";
+        for (let y = 0; y < lines.length; y++) ctx.fillText(lines[y], PAD, PAD + y*LH);
+      }
+      return new Promise(res => ec.toBlob(res, "image/png"));
+    }
+
+    function asciiCopy() {
+      const out = document.getElementById("ascii-output-pre");
+      navigator.clipboard.writeText(out.textContent || out.innerText)
+        .then(()=>showToast("Disalin ke clipboard ✓"))
+        .catch(()=>showToast("Gagal menyalin","error"));
+    }
+
+    function asciiCopyWA() {
+      const out = document.getElementById("ascii-output-pre");
+      const raw = out.textContent || out.innerText;
+      navigator.clipboard.writeText("```\n" + raw.trimEnd() + "\n```")
+        .then(()=>showToast("Disalin untuk WhatsApp ✓"))
+        .catch(()=>showToast("Gagal menyalin","error"));
+    }
+
+    // ════════════════════════════════════════════════
     // HELPERS
     // ════════════════════════════════════════════════
     function parseRanges(str, total) {
@@ -1557,4 +1710,4 @@
     dz.addEventListener("drop",      e => { e.preventDefault(); dz.classList.remove("drag-over"); handlePanelFiles(e.dataTransfer.files); });
   </script>
 </body>
-</html>
+	</html>
