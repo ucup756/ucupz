@@ -7,6 +7,7 @@ function renderSidebar(activePage) {
     { id: "profil",    href: "profil.html",    icon: "👤", label: "Profil" },
     { id: "converter", href: "converter.html", icon: "🔄", label: "Converter" },
     { id: "ascii",     href: "ascii.html",     icon: "🎨", label: "Gambar to Art" },
+    { id: "share",     href: "share.html",     icon: "📡", label: "Berbagi File" },
     { id: "setting",   href: "setting.html",   icon: "⚙️",  label: "Pengaturan" },
   ];
 
@@ -15,7 +16,11 @@ function renderSidebar(activePage) {
     const mobileItems = pages.map(p => `
       <a href="${p.href}" class="mobile-nav-item ${activePage === p.id ? "active" : ""}">
         <span class="mnav-icon">${p.icon}</span>
-        <span>${p.label === "Gambar to Art" ? "Art" : p.label}</span>
+        <span>${
+          p.label === "Gambar to Art" ? "Art" :
+          p.label === "Berbagi File"  ? "Share" :
+          p.label
+        }</span>
       </a>`).join("") +
       `<button class="mobile-nav-item danger" onclick="logout()">
         <span class="mnav-icon">🚪</span><span>Keluar</span>
@@ -96,7 +101,6 @@ function applyGlobalSettings() {
   const s = JSON.parse(localStorage.getItem("settings") || "{}");
   if (s.accent) {
     document.documentElement.style.setProperty("--accent", s.accent);
-    // Derive accent2 & glow from accent
     document.documentElement.style.setProperty("--accent-glow", hexToRgba(s.accent, 0.28));
   }
   if (s.fontSize) {
