@@ -258,10 +258,6 @@
           <span class="meta-chip">✦ <span>Member</span></span>
         </div>
       </div>
-      <!-- Logout button pindah ke sini -->
-      <button class="btn btn-danger" onclick="logout()" style="margin-bottom:6px;flex-shrink:0">
-        🚪 Logout
-      </button>
     </div>
 
     <!-- Stats -->
@@ -427,18 +423,9 @@
         </div>
       </div>
 
-      <!-- Logout & Danger zone -->
+      <!-- Danger zone -->
       <div class="danger-zone">
         <p class="danger-zone-title">⚠️ Zona Berbahaya</p>
-
-        <div class="danger-item">
-          <div class="danger-item-info">
-            <p>Keluar dari akun</p>
-            <span>Sesi akan dihapus, kamu perlu login ulang</span>
-          </div>
-          <button class="btn btn-danger" onclick="logout()">🚪 Logout</button>
-        </div>
-
         <div class="danger-item">
           <div class="danger-item-info">
             <p>Hapus semua data lokal</p>
@@ -447,6 +434,14 @@
           <button class="btn btn-danger" onclick="clearAllData()">🗑 Hapus Data</button>
         </div>
       </div>
+    </div>
+
+    <!-- Logout — paling bawah halaman -->
+    <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border)">
+      <button class="btn btn-danger" onclick="logout()" style="width:100%;justify-content:center;padding:12px;font-size:14px">
+        🚪 Keluar dari Akun
+      </button>
+      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px">Sesi akan dihapus dan kamu perlu login ulang dengan Google.</p>
     </div>
 
   </main>
@@ -568,4 +563,4 @@
     loadProfile();
   </script>
 </body>
-        </html>
+            </html>
