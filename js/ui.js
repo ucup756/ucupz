@@ -21,8 +21,7 @@ function renderSidebar(activePage) {
           p.label === "Berbagi File"  ? "Share" :
           p.label
         }</span>
-      </a>`).join("") +
-     ;
+      </a>`).join("");
     const nav = document.createElement("nav");
     nav.id = "mobile-navbar";
     nav.className = "mobile-navbar";
