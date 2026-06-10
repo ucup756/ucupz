@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Berbagi File — UcupzConvert</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <!-- PeerJS untuk WebRTC signaling -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <style>
+    /* ── Mode tabs ── */
+    .share-mode-toggle {
+      display: flex;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 24px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text2);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .mode-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border2);
+    }
+    .mode-btn .mode-icon { font-size: 17px; }
+
+    /* ── Peer ID display ── */
+    .peer-id-box {
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .peer-id-code {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--accent2);
+      letter-spacing: 0.12em;
+      flex: 1;
+      text-align: center;
+    }
+
+    /* ── Status badge ── */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pill .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+    }
+    .status-idle    { background: rgba(74,73,98,0.25);  color: var(--text3);   }
+    .status-idle .dot    { background: var(--text3); }
+    .status-waiting { background: rgba(255,179,71,0.15); color: var(--warn);    }
+    .status-waiting .dot { background: var(--warn); animation: pulse 1s ease-in-out infinite; }
+    .status-connected { background: rgba(0,212,168,0.12); color: var(--success); }
+    .status-connected .dot { background: var(--success); }
+    .status-error   { background: rgba(255,107,107,0.12); color: var(--danger); }
+    .status-error .dot   { background: var(--danger); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── Transfer progress ── */
+    .transfer-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin-top: 10px;
+    }
+    .transfer-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .transfer-icon { font-size: 20px; flex-shrink: 0; }
+    .transfer-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .transfer-size { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+    .transfer-bar  { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .transfer-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--teal)); border-radius: 2px; transition: width 0.2s ease; }
+    .transfer-pct  { font-size: 11px; color: var(--text2); text-align: right; margin-top: 4px; }
+
+    /* ── Code input ── */
+    .code-input {
+      background: var(--bg);
+      border: 2px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--accent2);
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      padding: 14px 16px;
+      outline: none;
+      text-align: center;
+      width: 100%;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      text-transform: uppercase;
+    }
+    .code-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .code-input::placeholder { color: var(--text3); font-size: 16px; letter-spacing: 0.05em; }
+
+    /* ── Info row ── */
+    .feature-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .feature-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--text2);
+    }
+
+    /* ── Received file ── */
+    .received-box {
+      background: rgba(0,212,168,0.06);
+      border: 1px solid rgba(0,212,168,0.2);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    /* ── QR placeholder ── */
+    .qr-area {
+      width: 120px; height: 120px;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 48px;
+    }
+
+    @media (max-width: 768px) {
+      .peer-id-code { font-size: 18px; letter-spacing: 0.08em; }
+      .code-input   { font-size: 18px; }
+      .feature-row  { gap: 8px; }
+    }
+  </style>
+</head>
+<body class="app-page">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Berbagi File</h1>
+        <p class="page-sub">Transfer langsung antar browser — P2P terenkripsi, tidak ada file yang disimpan ke server.</p>
+      </div>
+      <div id="status-display">
+        <span class="status-pill status-idle" id="conn-status">
+          <span class="dot"></span> Menghubungkan...
+        </span>
+      </div>
+    </div>
+
+    <!-- Mode toggle: Kirim / Terima -->
+    <div class="share-mode-toggle">
+      <button class="mode-btn active" id="btn-mode-send" onclick="switchMode('send')">
+        <span class="mode-icon">📤</span> Kirim File
+      </button>
+      <button class="mode-btn" id="btn-mode-receive" onclick="switchMode('receive')">
+        <span class="mode-icon">📥</span> Terima File
+      </button>
+    </div>
+
+    <!-- ══ MODE KIRIM ══ -->
+    <div id="panel-send">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+        <!-- Kiri: Upload + Kode -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <h3 class="section-title" style="margin:0">Kode Berbagi Kamu</h3>
+              <span class="status-pill status-idle" id="send-status-pill">
+                <span class="dot"></span> <span id="send-status-text">Menginisialisasi...</span>
+              </span>
+            </div>
+            <div class="divider"></div>
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px">
+              Bagikan kode ini ke penerima. Mereka akan masukkan kode ini di tab "Terima File".
+            </p>
+            <div class="peer-id-box">
+              <span class="peer-id-code" id="my-peer-id">——————</span>
+              <button class="btn btn-secondary" onclick="copyPeerId()" style="font-size:12px;padding:6px 12px;flex-shrink:0" title="Salin kode">
+                📋 Salin
+              </button>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-secondary" style="font-size:12px;padding:7px 14px;flex:1" onclick="shareViaWA()">
+                📱 Bagikan via WA
+              </button>
+              <button class="btn btn-secondary" style="font-size:12px;padding:7px 14px;flex:1" onclick="copyShareLink()">
+                🔗 Copy Link
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="section-title">Upload File</h3>
+            <div class="divider"></div>
+            <div class="upload-zone" id="send-dropzone" onclick="document.getElementById('send-input').click()">
+              <div class="upload-icon">📦</div>
+              <p class="upload-label">Klik atau seret file ke sini</p>
+              <p class="upload-hint">Semua jenis file • Tidak ada batas ukuran</p>
+              <input type="file" id="send-input" style="display:none" onchange="queueFile(this.files[0])" />
+            </div>
+            <div id="send-file-info" style="display:none;margin-top:12px"></div>
+            <button class="btn btn-primary" id="btn-send-file" onclick="sendQueuedFile()" disabled style="margin-top:14px;width:100%">
+              ✦ Kirim ke Penerima
+            </button>
+            <p style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center" id="send-hint-text">
+              Tunggu penerima terhubung sebelum mengirim.
+            </p>
+          </div>
+        </div>
+
+        <!-- Kanan: Status & Log -->
+        <div class="card" style="min-height:300px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 class="section-title" style="margin:0">Status Transfer</h3>
+            <button class="btn btn-secondary" onclick="clearLog()" style="font-size:11px;padding:4px 10px">Bersihkan</button>
+          </div>
+          <div class="divider"></div>
+
+          <div id="send-transfers" style="display:flex;flex-direction:column;gap:8px">
+            <div class="empty-state" id="send-empty" style="padding:40px 0">
+              <div style="font-size:36px;margin-bottom:12px">📡</div>
+              Belum ada transfer.<br>Upload file dan tunggu penerima terhubung.
+            </div>
+          </div>
+
+          <div class="feature-row">
+            <div class="feature-chip">🔒 Enkripsi E2E</div>
+            <div class="feature-chip">⚡ P2P Langsung</div>
+            <div class="feature-chip">🚫 Tidak Disimpan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODE TERIMA ══ -->
+    <div id="panel-receive" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+        <!-- Kiri: Masukkan kode -->
+        <div class="card">
+          <h3 class="section-title">Masukkan Kode Pengirim</h3>
+          <div class="divider"></div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px">
+            Minta kode 6 karakter dari pengirim, lalu masukkan di bawah ini.
+          </p>
+          <div class="form-group" style="margin-bottom:16px">
+            <label class="form-label">Kode Pengirim</label>
+            <input type="text" id="remote-peer-input" class="code-input" placeholder="XXXXXX"
+              maxlength="6" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
+              onkeydown="if(event.key==='Enter') connectToPeer()" />
+          </div>
+          <button class="btn btn-primary" id="btn-connect" onclick="connectToPeer()" style="width:100%" disabled>
+            🔌 Sambungkan
+          </button>
+          <div id="receive-status-area" style="margin-top:14px;display:none">
+            <span class="status-pill" id="receive-status-pill">
+              <span class="dot"></span> <span id="receive-status-text"></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Kanan: File diterima -->
+        <div class="card" style="min-height:300px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 class="section-title" style="margin:0">File Diterima</h3>
+          </div>
+          <div class="divider"></div>
+
+          <div id="receive-transfers" style="display:flex;flex-direction:column;gap:8px">
+            <div class="empty-state" id="receive-empty" style="padding:40px 0">
+              <div style="font-size:36px;margin-bottom:12px">📬</div>
+              Sambungkan ke pengirim dulu,<br>lalu file akan muncul di sini.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Cara Kerja ══ -->
+    <div class="card" style="margin-top:20px">
+      <h3 class="section-title">Cara Kerja</h3>
+      <div class="divider"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:4px">
+        <div style="text-align:center;padding:12px 8px">
+          <div style="font-size:32px;margin-bottom:10px">📤</div>
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">1. Pengirim upload</p>
+          <p style="font-size:12px;color:var(--text2)">Upload file dan dapat kode unik 6 karakter</p>
+        </div>
+        <div style="text-align:center;padding:12px 8px">
+          <div style="font-size:32px;margin-bottom:10px">🔑</div>
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">2. Bagikan kode</p>
+          <p style="font-size:12px;color:var(--text2)">Kirim kode ke penerima via WA, chat, dll</p>
+        </div>
+        <div style="text-align:center;padding:12px 8px">
+          <div style="font-size:32px;margin-bottom:10px">📥</div>
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">3. Penerima download</p>
+          <p style="font-size:12px;color:var(--text2)">Masukkan kode → file dikirim langsung P2P</p>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;padding-top:12px;border-top:1px solid var(--border)">
+        ⚠️ Kedua browser harus tetap terbuka selama transfer berlangsung. File tidak pernah tersimpan di server.
+      </p>
+    </div>
+  </main>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    requireLogin();
+    renderSidebar("share");
+    applyGlobalSettings();
+
+    // ── State ──────────────────────────────────────────────
+    let myPeer       = null;
+    let myPeerId     = null;
+    let activeConn   = null;   // koneksi aktif (sebagai pengirim)
+    let queuedFile   = null;   // file yang siap dikirim
+    let currentMode  = "send";
+
+    // Buffer untuk file yang diterima
+    let receiveBuffer = [];
+    let receiveMeta   = null;
+    let receivedSize  = 0;
+
+    // ── Init PeerJS ────────────────────────────────────────
+    function initPeer() {
+      // Generate kode 6 karakter acak (huruf+angka)
+      const charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let id = "";
+      for (let i = 0; i < 6; i++) id += charset[Math.floor(Math.random() * charset.length)];
+      myPeerId = id;
+
+      myPeer = new Peer(id, {
+        // Pakai PeerJS cloud (gratis, tidak perlu server sendiri)
+        host: "0.peerjs.com",
+        port: 443,
+        secure: true,
+        path: "/",
+        config: {
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+          ]
+        }
+      });
+
+      myPeer.on("open", (id) => {
+        myPeerId = id;
+        document.getElementById("my-peer-id").textContent = id;
+        setConnStatus("idle", "Siap — menunggu penerima");
+        setSendStatus("waiting", "Menunggu penerima terhubung...");
+      });
+
+      myPeer.on("error", (err) => {
+        console.error("PeerJS error:", err);
+        if (err.type === "peer-unavailable") {
+          setReceiveStatus("error", "Kode tidak ditemukan atau pengirim offline");
+          showToast("Kode tidak valid atau pengirim sudah offline", "error");
+        } else if (err.type === "network" || err.type === "server-error") {
+          setConnStatus("error", "Koneksi gagal — coba refresh");
+          showToast("Gagal terhubung ke jaringan P2P", "error");
+        } else {
+          showToast("Error: " + err.message, "error");
+        }
+      });
+
+      myPeer.on("disconnected", () => {
+        setConnStatus("error", "Terputus");
+        // Coba reconnect
+        setTimeout(() => { try { myPeer.reconnect(); } catch(e) {} }, 2000);
+      });
+
+      // Terima koneksi masuk (sebagai tujuan — mode kirim)
+      myPeer.on("connection", (conn) => {
+        activeConn = conn;
+        setSendStatus("connected", `Terhubung ke penerima`);
+        setConnStatus("connected", "Tersambung");
+        document.getElementById("btn-send-file").disabled = (queuedFile === null);
+        document.getElementById("send-hint-text").textContent =
+          queuedFile ? "Klik Kirim untuk mulai transfer." : "Upload file terlebih dahulu.";
+
+        conn.on("data", (data) => {
+          // Pengirim menerima ACK dari penerima
+          if (data && data.type === "ack") {
+            showToast("Penerima siap! Mengirim file...");
+          }
+        });
+
+        conn.on("close", () => {
+          activeConn = null;
+          setSendStatus("waiting", "Penerima terputus");
+          document.getElementById("btn-send-file").disabled = true;
+          document.getElementById("send-hint-text").textContent = "Tunggu penerima terhubung kembali.";
+          showToast("Koneksi dengan penerima terputus", "error");
+        });
+
+        conn.on("error", (e) => {
+          showToast("Koneksi error: " + e.message, "error");
+        });
+
+        showToast("✓ Penerima terhubung!");
+      });
+    }
+
+    // ── Mode switch ────────────────────────────────────────
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById("panel-send").style.display    = mode === "send"    ? "block" : "none";
+      document.getElementById("panel-receive").style.display = mode === "receive" ? "block" : "none";
+      document.getElementById("btn-mode-send").classList.toggle("active", mode === "send");
+      document.getElementById("btn-mode-receive").classList.toggle("active", mode === "receive");
+    }
+
+    // ── Status helpers ─────────────────────────────────────
+    function setConnStatus(type, text) {
+      const el = document.getElementById("conn-status");
+      el.className = "status-pill status-" + type;
+      el.innerHTML = `<span class="dot"></span> ${text}`;
+    }
+
+    function setSendStatus(type, text) {
+      const pill = document.getElementById("send-status-pill");
+      const span = document.getElementById("send-status-text");
+      pill.className = "status-pill status-" + type;
+      span.textContent = text;
+    }
+
+    function setReceiveStatus(type, text) {
+      const area = document.getElementById("receive-status-area");
+      const pill = document.getElementById("receive-status-pill");
+      const span = document.getElementById("receive-status-text");
+      area.style.display = "block";
+      pill.className = "status-pill status-" + type;
+      span.textContent = text;
+    }
+
+    // ── File queue (pengirim) ──────────────────────────────
+    function queueFile(file) {
+      if (!file) return;
+      queuedFile = file;
+
+      const info = document.getElementById("send-file-info");
+      info.style.display = "block";
+      info.innerHTML = `
+        <div class="transfer-item">
+          <div class="transfer-header">
+            <span class="transfer-icon">${getFileIcon(file.type)}</span>
+            <span class="transfer-name">${file.name}</span>
+            <span class="transfer-size">${fmtSize(file.size)}</span>
+          </div>
+          <p style="font-size:11px;color:var(--text2)">Siap dikirim saat penerima terhubung</p>
+        </div>`;
+
+      const hasConn = activeConn && activeConn.open;
+      document.getElementById("btn-send-file").disabled = !hasConn;
+      document.getElementById("send-hint-text").textContent =
+        hasConn ? "Klik Kirim untuk mulai transfer." : "Tunggu penerima terhubung.";
+    }
+
+    // ── Kirim file via DataChannel ─────────────────────────
+    function sendQueuedFile() {
+      if (!queuedFile || !activeConn || !activeConn.open) {
+        showToast("Pastikan penerima terhubung dan file sudah dipilih.", "error");
+        return;
+      }
+
+      const file   = queuedFile;
+      const CHUNK  = 64 * 1024; // 64 KB per chunk
+      const total  = file.size;
+      let sent     = 0;
+
+      // Kirim metadata dulu
+      activeConn.send({ type: "meta", name: file.name, size: total, mime: file.type });
+
+      // Render progress di panel
+      const tid    = "send_" + Date.now();
+      addTransferItem("send", tid, file.name, total);
+      document.getElementById("send-empty").style.display = "none";
+
+      document.getElementById("btn-send-file").disabled = true;
+
+      const reader = new FileReader();
+      let offset   = 0;
+
+      function readChunk() {
+        const slice = file.slice(offset, offset + CHUNK);
+        reader.readAsArrayBuffer(slice);
+      }
+
+      reader.onload = (e) => {
+        activeConn.send(e.target.result);
+        sent   += e.target.result.byteLength;
+        offset += CHUNK;
+
+        const pct = Math.min(100, Math.round((sent / total) * 100));
+        updateTransferProgress(tid, pct);
+
+        if (offset < total) {
+          // Throttle sedikit agar tidak overwhelm
+          setTimeout(readChunk, 0);
+        } else {
+          // Selesai
+          activeConn.send({ type: "done" });
+          finalizeTransferItem(tid, true);
+          showToast("File berhasil dikirim ✓");
+          document.getElementById("btn-send-file").disabled = false;
+          queuedFile = null;
+          document.getElementById("send-input").value = "";
+          document.getElementById("send-file-info").style.display = "none";
+        }
+      };
+
+      readChunk();
+    }
+
+    // ── Koneksi ke pengirim (penerima) ─────────────────────
+    function connectToPeer() {
+      const code = document.getElementById("remote-peer-input").value.trim().toUpperCase();
+      if (code.length < 4) { showToast("Masukkan kode yang valid", "error"); return; }
+
+      setReceiveStatus("waiting", "Menghubungkan ke pengirim...");
+      document.getElementById("btn-connect").disabled = true;
+
+      const conn = myPeer.connect(code, {
+        reliable: true,
+        serialization: "binary",
+      });
+
+      conn.on("open", () => {
+        setReceiveStatus("connected", "Terhubung ke pengirim");
+        setConnStatus("connected", "Tersambung");
+        showToast("✓ Terhubung! Menunggu file dari pengirim...");
+        // Kirim ACK
+        conn.send({ type: "ack" });
+      });
+
+      conn.on("data", (data) => {
+        handleReceiveData(data);
+      });
+
+      conn.on("close", () => {
+        setReceiveStatus("idle", "Koneksi ditutup");
+        setConnStatus("idle", "Terputus");
+        document.getElementById("btn-connect").disabled = false;
+      });
+
+      conn.on("error", (e) => {
+        setReceiveStatus("error", "Koneksi gagal");
+        document.getElementById("btn-connect").disabled = false;
+        showToast("Gagal terhubung: " + e.message, "error");
+      });
+    }
+
+    // ── Terima data chunk ─────────────────────────────────
+    let receiveTransferId = null;
+
+    function handleReceiveData(data) {
+      if (data && data.type === "meta") {
+        // Inisialisasi receive
+        receiveMeta   = data;
+        receiveBuffer = [];
+        receivedSize  = 0;
+        receiveTransferId = "recv_" + Date.now();
+
+        addTransferItem("receive", receiveTransferId, data.name, data.size);
+        document.getElementById("receive-empty").style.display = "none";
+        return;
+      }
+
+      if (data && data.type === "done") {
+        // Gabung semua chunk
+        const blob  = new Blob(receiveBuffer, { type: receiveMeta.mime || "application/octet-stream" });
+        finalizeTransferItem(receiveTransferId, true, blob, receiveMeta.name);
+        receiveBuffer = [];
+        receiveMeta   = null;
+        receivedSize  = 0;
+        showToast("File diterima! Klik Unduh ✓");
+        return;
+      }
+
+      // Chunk data (ArrayBuffer)
+      if (data instanceof ArrayBuffer) {
+        receiveBuffer.push(data);
+        receivedSize += data.byteLength;
+        if (receiveMeta) {
+          const pct = Math.min(100, Math.round((receivedSize / receiveMeta.size) * 100));
+          updateTransferProgress(receiveTransferId, pct);
+        }
+      }
+    }
+
+    // ── Transfer UI helpers ───────────────────────────────
+    function addTransferItem(panel, tid, name, size) {
+      const container = document.getElementById(panel === "send" ? "send-transfers" : "receive-transfers");
+      const div = document.createElement("div");
+      div.id = "ti_" + tid;
+      div.className = "transfer-item";
+      div.innerHTML = `
+        <div class="transfer-header">
+          <span class="transfer-icon">${getFileIcon("")}</span>
+          <span class="transfer-name">${escHtml(name)}</span>
+          <span class="transfer-size">${fmtSize(size)}</span>
+        </div>
+        <div class="transfer-bar"><div class="transfer-fill" id="tf_${tid}" style="width:0%"></div></div>
+        <div class="transfer-pct" id="tp_${tid}">0%</div>`;
+      container.appendChild(div);
+    }
+
+    function updateTransferProgress(tid, pct) {
+      const fill = document.getElementById("tf_" + tid);
+      const pctEl = document.getElementById("tp_" + tid);
+      if (fill) fill.style.width = pct + "%";
+      if (pctEl) pctEl.textContent = pct + "%";
+    }
+
+    function finalizeTransferItem(tid, success, blob, filename) {
+      const el = document.getElementById("ti_" + tid);
+      if (!el) return;
+      const pctEl = document.getElementById("tp_" + tid);
+      if (pctEl) pctEl.textContent = success ? "✓ Selesai" : "✗ Gagal";
+      if (blob && filename) {
+        // Tambah tombol unduh
+        const btn = document.createElement("button");
+        btn.className = "btn btn-primary";
+        btn.style.cssText = "margin-top:10px;font-size:12px;padding:6px 14px;width:100%";
+        btn.textContent = "⬇ Unduh " + filename;
+        btn.onclick = () => {
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+          showToast("File diunduh ✓");
+        };
+        el.appendChild(btn);
+      }
+    }
+
+    function clearLog() {
+      const container = document.getElementById("send-transfers");
+      container.innerHTML = `<div class="empty-state" id="send-empty" style="padding:40px 0">
+        <div style="font-size:36px;margin-bottom:12px">📡</div>
+        Belum ada transfer.<br>Upload file dan tunggu penerima terhubung.
+      </div>`;
+    }
+
+    // ── Share helpers ─────────────────────────────────────
+    function copyPeerId() {
+      navigator.clipboard.writeText(myPeerId || "")
+        .then(() => showToast("Kode disalin ✓"))
+        .catch(() => showToast("Gagal menyalin", "error"));
+    }
+
+    function copyShareLink() {
+      const url = `${location.origin}/pages/share.html#${myPeerId}`;
+      navigator.clipboard.writeText(url)
+        .then(() => showToast("Link disalin ✓"))
+        .catch(() => showToast("Gagal menyalin", "error"));
+    }
+
+    function shareViaWA() {
+      const msg = `Hei! Aku mau berbagi file denganmu via UcupzConvert.\n\n` +
+        `Buka: ${location.origin}/pages/share.html\n` +
+        `Masuk ke tab "Terima File" dan masukkan kode:\n\n*${myPeerId}*\n\n` +
+        `_(Pastikan aku masih online saat kamu masukkan kode)_`;
+      window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+    }
+
+    // ── Enable connect button ──────────────────────────────
+    document.getElementById("remote-peer-input").addEventListener("input", function() {
+      document.getElementById("btn-connect").disabled = this.value.trim().length < 4;
+    });
+
+    // ── Check URL hash untuk auto-fill kode ───────────────
+    function checkHashCode() {
+      const hash = location.hash.replace("#", "").trim().toUpperCase();
+      if (hash && /^[A-Z0-9]{4,8}$/.test(hash)) {
+        switchMode("receive");
+        document.getElementById("remote-peer-input").value = hash;
+        document.getElementById("btn-connect").disabled = false;
+        showToast("Kode ditemukan dari link! Klik Sambungkan.");
+        location.hash = "";
+      }
+    }
+
+    // ── Helpers ───────────────────────────────────────────
+    function fmtSize(b) {
+      if (b < 1024) return b + " B";
+      if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
+      if (b < 1073741824) return (b / 1048576).toFixed(2) + " MB";
+      return (b / 1073741824).toFixed(2) + " GB";
+    }
+
+    function getFileIcon(mime) {
+      if (!mime) return "📄";
+      if (mime.startsWith("image/"))  return "🖼";
+      if (mime.startsWith("video/"))  return "🎬";
+      if (mime.startsWith("audio/"))  return "🎵";
+      if (mime === "application/pdf") return "📕";
+      if (mime.includes("zip") || mime.includes("rar") || mime.includes("7z")) return "📦";
+      if (mime.includes("word") || mime.includes("document")) return "📝";
+      if (mime.includes("sheet") || mime.includes("excel"))   return "📊";
+      return "📄";
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    // ── Drag & Drop ───────────────────────────────────────
+    const dz = document.getElementById("send-dropzone");
+    dz.addEventListener("dragover",  e => { e.preventDefault(); dz.classList.add("drag-over"); });
+    dz.addEventListener("dragleave", () => dz.classList.remove("drag-over"));
+    dz.addEventListener("drop",      e => {
+      e.preventDefault(); dz.classList.remove("drag-over");
+      if (e.dataTransfer.files[0]) queueFile(e.dataTransfer.files[0]);
+    });
+
+    // ── Boot ───────────────────────────────────────────────
+    initPeer();
+    checkHashCode();
+  </script>
+</body>
+  </html>
