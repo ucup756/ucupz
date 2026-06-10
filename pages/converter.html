@@ -421,6 +421,7 @@
       // Dokumen
       md2html:     { title:"Markdown → HTML",   desc:"Konversi file .md menjadi halaman HTML siap pakai",  icon:"📝", accept:".md,.txt", multiple:false, hint:"Upload file .md atau .txt berisi Markdown" },
       csv2json:    { title:"CSV ↔ JSON",        desc:"Konversi data CSV ke JSON atau sebaliknya",           icon:"📊", accept:".csv,.json", multiple:false, hint:"Upload file .csv atau .json" },
+			ascii: { title:"Gambar ke ASCII Art", desc:"Ubah gambar menjadi karakter teks ASCII", icon:"🎨", accept:"image/*", multiple:false, hint:"Upload 1 file gambar (JPG, PNG, WEBP)" },
     };
 
     // ── Tool options HTML ──────────────────────────────────
@@ -666,7 +667,6 @@
       document.getElementById("panel-dropzone").style.display = "block";
       document.getElementById("img-source-preview-wrap").style.display = "none";
       document.getElementById("tool-panel").classList.add("show");
-			ascii: { title:"Gambar ke ASCII Art", desc:"Ubah gambar menjadi karakter teks ASCII", icon:"🎨", accept:"image/*", multiple:false, hint:"Upload 1 file gambar (JPG, PNG, WEBP)" },
 
       // Special inits
       if (id === "split") {
