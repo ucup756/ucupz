@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Code Generator — UcupzConvert</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages.css" />
+  <!-- QR Code library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    /* ── Layout dua kolom ── */
+    .qr-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ── Input type tabs ── */
+    .input-type-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .itype-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 6px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text2);
+      font-family: var(--font-body);
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .itype-btn .itype-icon { font-size: 22px; line-height: 1; }
+    .itype-btn:hover  { border-color: var(--accent); color: var(--text); background: rgba(124,106,255,0.07); }
+    .itype-btn.active { border-color: var(--accent); color: var(--accent2); background: rgba(124,106,255,0.13); }
+
+    /* ── Input pane ── */
+    .input-pane { display: none; }
+    .input-pane.active { display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Kustomisasi ── */
+    .custom-section { margin-top: 4px; }
+    .custom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .custom-row:last-child { border: none; padding-bottom: 0; }
+    .custom-label { font-size: 13px; font-weight: 500; color: var(--text); }
+    .custom-desc  { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+    /* ── Color picker ── */
+    .color-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .color-swatch-input {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      border: 2px solid var(--border2);
+      cursor: pointer;
+      padding: 2px;
+      background: transparent;
+    }
+    .color-hex-input {
+      width: 88px;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-xs);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 6px 8px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .color-hex-input:focus { border-color: var(--accent); }
+
+    /* ── QR Preview card ── */
+    .qr-preview-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .qr-canvas-wrap {
+      width: 220px; height: 220px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      position: relative;
+      border: 1px solid var(--border2);
+    }
+    #qr-container { line-height: 0; }
+    #qr-container canvas,
+    #qr-container img { display: block; }
+
+    .qr-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+    .qr-placeholder-icon { font-size: 48px; opacity: .4; }
+
+    /* Logo overlay di tengah QR */
+    #logo-overlay {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 6px;
+      pointer-events: none;
+      display: none;
+      background: #fff;
+      padding: 3px;
+    }
+    #logo-overlay img {
+      display: block;
+      border-radius: 4px;
+    }
+
+    /* ── Action buttons ── */
+    .qr-actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .qr-actions .btn { flex: 1; justify-content: center; font-size: 12.5px; }
+
+    /* ── QR info ── */
+    .qr-info {
+      width: 100%;
+      background: var(--bg3);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: none;
+    }
+    .qr-info.show { display: block; }
+    .qr-info-row  { display: flex; justify-content: space-between; font-size: 11.5px; padding: 3px 0; }
+    .qr-info-row span:first-child { color: var(--text3); }
+    .qr-info-row span:last-child  { color: var(--text); font-weight: 500; }
+
+    /* ── Preset warna ── */
+    .color-presets {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .color-preset {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform var(--transition), border-color var(--transition);
+      flex-shrink: 0;
+    }
+    .color-preset:hover  { transform: scale(1.2); }
+    .color-preset.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
+
+    /* ── Logo upload ── */
+    .logo-upload-zone {
+      border: 1.5px dashed var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .logo-upload-zone:hover { border-color: var(--accent); color: var(--text); background: rgba(124,106,255,0.05); }
+
+    /* ── History ── */
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-bottom: 8px;
+    }
+    .history-item:hover { border-color: var(--accent); background: rgba(124,106,255,0.06); }
+    .history-item canvas { border-radius: 4px; flex-shrink: 0; }
+    .history-text { flex: 1; min-width: 0; }
+    .history-text p   { font-size: 12.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-text span { font-size: 11px; color: var(--text3); }
+    .history-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 2px 4px; }
+    .history-del:hover { color: var(--danger); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .qr-layout { grid-template-columns: 1fr; }
+      .qr-preview-card { position: static; }
+      .input-type-grid { grid-template-columns: repeat(5, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .input-type-grid { grid-template-columns: repeat(3, 1fr); }
+      .itype-btn .itype-icon { font-size: 18px; }
+    }
+  </style>
+</head>
+<body class="app-page">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">QR Code Generator</h1>
+        <p class="page-sub">Buat QR Code dari link, teks, WiFi, dan lainnya — dengan kustomisasi warna & logo.</p>
+      </div>
+    </div>
+
+    <div class="qr-layout">
+
+      <!-- ══ Kiri: Input & Kustomisasi ══ -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Input type selector -->
+        <div class="card">
+          <h3 class="section-title" style="margin-bottom:16px">Tipe Konten</h3>
+
+          <div class="input-type-grid">
+            <button class="itype-btn active" onclick="switchType('url', this)">
+              <span class="itype-icon">🔗</span>URL / Link
+            </button>
+            <button class="itype-btn" onclick="switchType('text', this)">
+              <span class="itype-icon">📝</span>Teks
+            </button>
+            <button class="itype-btn" onclick="switchType('wa', this)">
+              <span class="itype-icon">💬</span>WhatsApp
+            </button>
+            <button class="itype-btn" onclick="switchType('wifi', this)">
+              <span class="itype-icon">📶</span>WiFi
+            </button>
+            <button class="itype-btn" onclick="switchType('email', this)">
+              <span class="itype-icon">📧</span>Email
+            </button>
+          </div>
+
+          <!-- URL -->
+          <div class="input-pane active" id="pane-url">
+            <div class="form-group">
+              <label class="form-label">URL / Link</label>
+              <input type="url" id="inp-url" class="form-input" placeholder="https://example.com"
+                oninput="scheduleGenerate()" />
+            </div>
+          </div>
+
+          <!-- Teks -->
+          <div class="input-pane" id="pane-text">
+            <div class="form-group">
+              <label class="form-label">Teks bebas</label>
+              <textarea id="inp-text" class="form-input" rows="3"
+                placeholder="Masukkan teks apapun..." oninput="scheduleGenerate()"></textarea>
+            </div>
+          </div>
+
+          <!-- WhatsApp -->
+          <div class="input-pane" id="pane-wa">
+            <div class="form-group">
+              <label class="form-label">Nomor WhatsApp</label>
+              <input type="tel" id="inp-wa-number" class="form-input"
+                placeholder="628123456789 (dengan kode negara, tanpa +)"
+                oninput="scheduleGenerate()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pesan awal (opsional)</label>
+              <textarea id="inp-wa-msg" class="form-input" rows="2"
+                placeholder="Halo, saya ingin bertanya..." oninput="scheduleGenerate()"></textarea>
+            </div>
+          </div>
+
+          <!-- WiFi -->
+          <div class="input-pane" id="pane-wifi">
+            <div class="form-group">
+              <label class="form-label">Nama WiFi (SSID)</label>
+              <input type="text" id="inp-wifi-ssid" class="form-input"
+                placeholder="NamaWiFiKamu" oninput="scheduleGenerate()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="text" id="inp-wifi-pass" class="form-input"
+                placeholder="PasswordWiFi" oninput="scheduleGenerate()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Enkripsi</label>
+              <div class="format-pills">
+                <label class="format-pill"><input type="radio" name="wifi-enc" value="WPA" checked onchange="scheduleGenerate()" /> WPA/WPA2</label>
+                <label class="format-pill"><input type="radio" name="wifi-enc" value="WEP" onchange="scheduleGenerate()" /> WEP</label>
+                <label class="format-pill"><input type="radio" name="wifi-enc" value="nopass" onchange="scheduleGenerate()" /> Tanpa sandi</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="input-pane" id="pane-email">
+            <div class="form-group">
+              <label class="form-label">Alamat Email</label>
+              <input type="email" id="inp-email-addr" class="form-input"
+                placeholder="tujuan@email.com" oninput="scheduleGenerate()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subjek (opsional)</label>
+              <input type="text" id="inp-email-subj" class="form-input"
+                placeholder="Perihal email..." oninput="scheduleGenerate()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Isi pesan (opsional)</label>
+              <textarea id="inp-email-body" class="form-input" rows="2"
+                placeholder="Isi pesan..." oninput="scheduleGenerate()"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kustomisasi -->
+        <div class="card">
+          <h3 class="section-title" style="margin-bottom:4px">Kustomisasi</h3>
+          <div class="divider"></div>
+          <div class="custom-section">
+
+            <!-- Warna QR -->
+            <div class="custom-row">
+              <div>
+                <p class="custom-label">Warna QR Code</p>
+                <p class="custom-desc">Warna titik-titik QR</p>
+              </div>
+              <div>
+                <div class="color-input-wrap">
+                  <input type="color" id="color-fg" value="#000000" class="color-swatch-input"
+                    oninput="syncColorHex('fg');scheduleGenerate()" />
+                  <input type="text"  id="color-fg-hex" value="#000000" class="color-hex-input"
+                    maxlength="7" oninput="syncColorPicker('fg');scheduleGenerate()" />
+                </div>
+                <div class="color-presets" id="presets-fg">
+                  <div class="color-preset active" style="background:#000000" data-color="#000000" onclick="applyPreset('fg','#000000',this)"></div>
+                  <div class="color-preset" style="background:#7c6aff" data-color="#7c6aff" onclick="applyPreset('fg','#7c6aff',this)"></div>
+                  <div class="color-preset" style="background:#ff6ab0" data-color="#ff6ab0" onclick="applyPreset('fg','#ff6ab0',this)"></div>
+                  <div class="color-preset" style="background:#00d4a8" data-color="#00d4a8" onclick="applyPreset('fg','#00d4a8',this)"></div>
+                  <div class="color-preset" style="background:#ff6b6b" data-color="#ff6b6b" onclick="applyPreset('fg','#ff6b6b',this)"></div>
+                  <div class="color-preset" style="background:#1a1a2e" data-color="#1a1a2e" onclick="applyPreset('fg','#1a1a2e',this)"></div>
+                  <div class="color-preset" style="background:#2563eb" data-color="#2563eb" onclick="applyPreset('fg','#2563eb',this)"></div>
+                  <div class="color-preset" style="background:#16a34a" data-color="#16a34a" onclick="applyPreset('fg','#16a34a',this)"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Warna background -->
+            <div class="custom-row">
+              <div>
+                <p class="custom-label">Warna Background</p>
+                <p class="custom-desc">Warna latar QR</p>
+              </div>
+              <div>
+                <div class="color-input-wrap">
+                  <input type="color" id="color-bg" value="#ffffff" class="color-swatch-input"
+                    oninput="syncColorHex('bg');scheduleGenerate()" />
+                  <input type="text"  id="color-bg-hex" value="#ffffff" class="color-hex-input"
+                    maxlength="7" oninput="syncColorPicker('bg');scheduleGenerate()" />
+                </div>
+                <div class="color-presets" id="presets-bg">
+                  <div class="color-preset active" style="background:#ffffff;border:1px solid #ddd" data-color="#ffffff" onclick="applyPreset('bg','#ffffff',this)"></div>
+                  <div class="color-preset" style="background:#f0f0ff" data-color="#f0f0ff" onclick="applyPreset('bg','#f0f0ff',this)"></div>
+                  <div class="color-preset" style="background:#fff7ed" data-color="#fff7ed" onclick="applyPreset('bg','#fff7ed',this)"></div>
+                  <div class="color-preset" style="background:#f0fdf4" data-color="#f0fdf4" onclick="applyPreset('bg','#f0fdf4',this)"></div>
+                  <div class="color-preset" style="background:#0e0e1a" data-color="#0e0e1a" onclick="applyPreset('bg','#0e0e1a',this)"></div>
+                  <div class="color-preset" style="background:#1e293b" data-color="#1e293b" onclick="applyPreset('bg','#1e293b',this)"></div>
+                  <div class="color-preset" style="background:#fef9c3" data-color="#fef9c3" onclick="applyPreset('bg','#fef9c3',this)"></div>
+                  <div class="color-preset" style="background:#fce7f3" data-color="#fce7f3" onclick="applyPreset('bg','#fce7f3',this)"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ukuran -->
+            <div class="custom-row">
+              <div>
+                <p class="custom-label">Ukuran output</p>
+                <p class="custom-desc">Resolusi file yang diunduh</p>
+              </div>
+              <div class="format-pills">
+                <label class="format-pill"><input type="radio" name="qr-size" value="256" /> Kecil</label>
+                <label class="format-pill"><input type="radio" name="qr-size" value="512" checked /> Sedang</label>
+                <label class="format-pill"><input type="radio" name="qr-size" value="1024" /> Besar</label>
+              </div>
+            </div>
+
+            <!-- Error correction -->
+            <div class="custom-row">
+              <div>
+                <p class="custom-label">Level koreksi error</p>
+                <p class="custom-desc">Makin tinggi → makin tahan rusak, makin padat</p>
+              </div>
+              <div class="format-pills">
+                <label class="format-pill"><input type="radio" name="qr-ecl" value="L" /> L</label>
+                <label class="format-pill"><input type="radio" name="qr-ecl" value="M" checked /> M</label>
+                <label class="format-pill"><input type="radio" name="qr-ecl" value="Q" /> Q</label>
+                <label class="format-pill"><input type="radio" name="qr-ecl" value="H" /> H</label>
+              </div>
+            </div>
+
+            <!-- Logo -->
+            <div class="custom-row" style="border:none;flex-direction:column;align-items:flex-start;gap:10px">
+              <div>
+                <p class="custom-label">Logo di tengah (opsional)</p>
+                <p class="custom-desc">Gunakan level koreksi Q atau H agar QR tetap bisa dibaca</p>
+              </div>
+              <div style="display:flex;gap:10px;width:100%;align-items:center;flex-wrap:wrap">
+                <div class="logo-upload-zone" style="flex:1" onclick="document.getElementById('logo-input').click()">
+                  <span id="logo-upload-label">📎 Klik untuk upload logo (PNG/JPG)</span>
+                  <input type="file" id="logo-input" accept="image/*" style="display:none" onchange="handleLogo(this.files[0])" />
+                </div>
+                <button class="btn btn-secondary" id="btn-remove-logo" onclick="removeLogo()" style="display:none;font-size:12px;padding:7px 12px">✕ Hapus</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;width:100%" id="logo-size-row" style="display:none">
+                <span style="font-size:12px;color:var(--text2)">Ukuran logo: <span id="logo-size-val">22</span>%</span>
+                <input type="range" id="logo-size" min="10" max="35" value="22" class="slider" style="flex:1"
+                  oninput="document.getElementById('logo-size-val').textContent=this.value;scheduleGenerate()" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Riwayat -->
+        <div class="card" id="history-card" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 class="section-title" style="margin:0">Riwayat</h3>
+            <button class="btn btn-secondary" onclick="clearHistory()" style="font-size:11px;padding:4px 10px">Hapus Semua</button>
+          </div>
+          <div id="history-list"></div>
+        </div>
+
+      </div>
+
+      <!-- ══ Kanan: Preview ══ -->
+      <div class="qr-preview-card">
+        <h3 class="section-title" style="align-self:flex-start;margin:0">Preview</h3>
+
+        <div class="qr-canvas-wrap" id="qr-canvas-wrap">
+          <div class="qr-placeholder" id="qr-placeholder">
+            <span class="qr-placeholder-icon">📲</span>
+            <span>Isi konten untuk<br>generate QR Code</span>
+          </div>
+          <div id="qr-container" style="display:none"></div>
+          <div id="logo-overlay"><img id="logo-img" src="" alt="logo" /></div>
+        </div>
+
+        <!-- Info QR -->
+        <div class="qr-info" id="qr-info">
+          <div class="qr-info-row"><span>Tipe</span><span id="info-type">—</span></div>
+          <div class="qr-info-row"><span>Karakter</span><span id="info-chars">—</span></div>
+          <div class="qr-info-row"><span>Error level</span><span id="info-ecl">—</span></div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="qr-actions" id="qr-actions" style="display:none">
+          <button class="btn btn-primary" onclick="downloadQR('png')" style="font-size:12.5px">⬇ PNG</button>
+          <button class="btn btn-secondary" onclick="downloadQR('svg')" style="font-size:12.5px">⬇ SVG</button>
+        </div>
+        <div class="qr-actions" id="qr-actions2" style="display:none">
+          <button class="btn btn-secondary" onclick="copyQRClipboard()" style="font-size:12.5px">📋 Copy Gambar</button>
+          <button class="btn btn-secondary" onclick="shareQR()" style="font-size:12.5px">📤 Bagikan</button>
+        </div>
+
+        <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px" id="qr-generate-hint">
+          Generate otomatis saat kamu mengetik.
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Canvas tersembunyi untuk export resolusi tinggi -->
+  <canvas id="export-canvas" style="display:none"></canvas>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script>
+    requireLogin();
+    renderSidebar("qrcode");
+    applyGlobalSettings();
+
+    // ── State ──────────────────────────────────────────────
+    let currentType  = "url";
+    let logoDataUrl  = null;
+    let generateTimer = null;
+    let lastQRText   = "";
+    let history      = JSON.parse(localStorage.getItem("qr_history") || "[]");
+
+    // ── Switch tipe input ──────────────────────────────────
+    function switchType(type, btn) {
+      currentType = type;
+      document.querySelectorAll(".itype-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.querySelectorAll(".input-pane").forEach(p => p.classList.remove("active"));
+      document.getElementById("pane-" + type).classList.add("active");
+      scheduleGenerate();
+    }
+
+    // ── Build QR string berdasarkan tipe ──────────────────
+    function buildQRString() {
+      switch (currentType) {
+        case "url": {
+          const v = document.getElementById("inp-url").value.trim();
+          return v ? (v.startsWith("http") ? v : "https://" + v) : "";
+        }
+        case "text":
+          return document.getElementById("inp-text").value.trim();
+        case "wa": {
+          const num = document.getElementById("inp-wa-number").value.trim().replace(/\D/g,"");
+          const msg = document.getElementById("inp-wa-msg").value.trim();
+          if (!num) return "";
+          return msg
+            ? `https://wa.me/${num}?text=${encodeURIComponent(msg)}`
+            : `https://wa.me/${num}`;
+        }
+        case "wifi": {
+          const ssid = document.getElementById("inp-wifi-ssid").value.trim();
+          const pass = document.getElementById("inp-wifi-pass").value.trim();
+          const enc  = document.querySelector('input[name="wifi-enc"]:checked').value;
+          if (!ssid) return "";
+          return `WIFI:T:${enc};S:${ssid};P:${pass};;`;
+        }
+        case "email": {
+          const addr = document.getElementById("inp-email-addr").value.trim();
+          const subj = document.getElementById("inp-email-subj").value.trim();
+          const body = document.getElementById("inp-email-body").value.trim();
+          if (!addr) return "";
+          let str = `mailto:${addr}`;
+          const params = [];
+          if (subj) params.push("subject=" + encodeURIComponent(subj));
+          if (body) params.push("body=" + encodeURIComponent(body));
+          if (params.length) str += "?" + params.join("&");
+          return str;
+        }
+        default: return "";
+      }
+    }
+
+    // ── Schedule generate (debounce 400ms) ────────────────
+    function scheduleGenerate() {
+      clearTimeout(generateTimer);
+      generateTimer = setTimeout(generateQR, 400);
+    }
+
+    // ── Generate QR ────────────────────────────────────────
+    function generateQR() {
+      const text = buildQRString();
+      if (!text) {
+        showEmpty();
+        return;
+      }
+      lastQRText = text;
+
+      const fgColor  = document.getElementById("color-fg").value;
+      const bgColor  = document.getElementById("color-bg").value;
+      const ecl      = document.querySelector('input[name="qr-ecl"]:checked').value;
+      const previewSize = 200;
+
+      // Bersihkan container
+      const container = document.getElementById("qr-container");
+      container.innerHTML = "";
+
+      try {
+        new QRCode(container, {
+          text:             text,
+          width:            previewSize,
+          height:           previewSize,
+          colorDark:        fgColor,
+          colorLight:       bgColor,
+          correctLevel:     QRCode.CorrectLevel[ecl],
+        });
+      } catch(e) {
+        showToast("Konten terlalu panjang untuk QR Code", "error");
+        showEmpty();
+        return;
+      }
+
+      // Tampilkan
+      document.getElementById("qr-placeholder").style.display  = "none";
+      container.style.display = "block";
+      document.getElementById("qr-canvas-wrap").style.background = bgColor;
+
+      // Logo overlay
+      updateLogoOverlay(previewSize);
+
+      // Info
+      const typeLabels = { url:"URL/Link", text:"Teks", wa:"WhatsApp", wifi:"WiFi", email:"Email" };
+      document.getElementById("info-type").textContent  = typeLabels[currentType];
+      document.getElementById("info-chars").textContent = text.length + " karakter";
+      document.getElementById("info-ecl").textContent   = ecl;
+      document.getElementById("qr-info").classList.add("show");
+      document.getElementById("qr-actions").style.display  = "flex";
+      document.getElementById("qr-actions2").style.display = "flex";
+      document.getElementById("qr-generate-hint").style.display = "none";
+    }
+
+    function showEmpty() {
+      document.getElementById("qr-placeholder").style.display  = "flex";
+      document.getElementById("qr-container").style.display    = "none";
+      document.getElementById("qr-info").classList.remove("show");
+      document.getElementById("qr-actions").style.display  = "none";
+      document.getElementById("qr-actions2").style.display = "none";
+      document.getElementById("qr-generate-hint").style.display = "block";
+      document.getElementById("logo-overlay").style.display = "none";
+    }
+
+    // ── Logo ───────────────────────────────────────────────
+    function handleLogo(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        logoDataUrl = e.target.result;
+        document.getElementById("logo-upload-label").textContent = "✓ " + file.name;
+        document.getElementById("btn-remove-logo").style.display = "inline-flex";
+        document.getElementById("logo-size-row").style.display   = "flex";
+        scheduleGenerate();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeLogo() {
+      logoDataUrl = null;
+      document.getElementById("logo-upload-label").textContent = "📎 Klik untuk upload logo (PNG/JPG)";
+      document.getElementById("btn-remove-logo").style.display = "none";
+      document.getElementById("logo-size-row").style.display   = "none";
+      document.getElementById("logo-overlay").style.display    = "none";
+      document.getElementById("logo-input").value = "";
+      scheduleGenerate();
+    }
+
+    function updateLogoOverlay(qrSize) {
+      const overlay = document.getElementById("logo-overlay");
+      if (!logoDataUrl) { overlay.style.display = "none"; return; }
+      const pct      = parseInt(document.getElementById("logo-size").value) / 100;
+      const logoSize = Math.round(qrSize * pct);
+      const imgEl    = document.getElementById("logo-img");
+      imgEl.src    = logoDataUrl;
+      imgEl.style.width  = logoSize + "px";
+      imgEl.style.height = logoSize + "px";
+      imgEl.style.objectFit = "contain";
+      overlay.style.display = "block";
+    }
+
+    // ── Color sync ─────────────────────────────────────────
+    function syncColorHex(which) {
+      const picker = document.getElementById("color-" + which);
+      document.getElementById("color-" + which + "-hex").value = picker.value;
+    }
+
+    function syncColorPicker(which) {
+      const hex = document.getElementById("color-" + which + "-hex").value;
+      if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+        document.getElementById("color-" + which).value = hex;
+      }
+    }
+
+    function applyPreset(which, color, el) {
+      document.getElementById("color-" + which).value       = color;
+      document.getElementById("color-" + which + "-hex").value = color;
+      document.querySelectorAll(`#presets-${which} .color-preset`).forEach(p => p.classList.remove("active"));
+      el.classList.add("active");
+      scheduleGenerate();
+    }
+
+    // ── Download QR ────────────────────────────────────────
+    async function downloadQR(format) {
+      if (!lastQRText) { showToast("Generate QR dulu!", "error"); return; }
+
+      const size     = parseInt(document.querySelector('input[name="qr-size"]:checked').value);
+      const fgColor  = document.getElementById("color-fg").value;
+      const bgColor  = document.getElementById("color-bg").value;
+      const ecl      = document.querySelector('input[name="qr-ecl"]:checked').value;
+
+      if (format === "png") {
+        // Render ulang ke canvas dengan resolusi tinggi
+        const tmpDiv = document.createElement("div");
+        tmpDiv.style.cssText = "position:fixed;left:-9999px;top:-9999px;";
+        document.body.appendChild(tmpDiv);
+
+        new QRCode(tmpDiv, {
+          text:         lastQRText,
+          width:        size,
+          height:       size,
+          colorDark:    fgColor,
+          colorLight:   bgColor,
+          correctLevel: QRCode.CorrectLevel[ecl],
+        });
+
+        setTimeout(async () => {
+          const srcCanvas = tmpDiv.querySelector("canvas");
+          if (!srcCanvas) { document.body.removeChild(tmpDiv); showToast("Gagal render", "error"); return; }
+
+          const ec  = document.getElementById("export-canvas");
+          ec.width  = size;
+          ec.height = size;
+          const ctx = ec.getContext("2d");
+
+          // Background
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(0, 0, size, size);
+          ctx.drawImage(srcCanvas, 0, 0, size, size);
+
+          // Logo
+          if (logoDataUrl) {
+            const pct      = parseInt(document.getElementById("logo-size").value) / 100;
+            const logoSize = Math.round(size * pct);
+            await new Promise(res => {
+              const img = new Image();
+              img.onload = () => {
+                const x = (size - logoSize) / 2;
+                const y = (size - logoSize) / 2;
+                // White padding
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(x - 4, y - 4, logoSize + 8, logoSize + 8);
+                ctx.drawImage(img, x, y, logoSize, logoSize);
+                res();
+              };
+              img.src = logoDataUrl;
+            });
+          }
+
+          document.body.removeChild(tmpDiv);
+          const blob = await new Promise(res => ec.toBlob(res, "image/png"));
+          triggerDownload(blob, "qrcode.png");
+          saveHistory(lastQRText, srcCanvas);
+          showToast("QR Code PNG diunduh ✓");
+        }, 100);
+
+      } else if (format === "svg") {
+        const svg = generateSVG(lastQRText, size, fgColor, bgColor, ecl);
+        const blob = new Blob([svg], { type: "image/svg+xml" });
+        triggerDownload(blob, "qrcode.svg");
+        showToast("QR Code SVG diunduh ✓");
+      }
+    }
+
+    // ── SVG generator sederhana (matrix) ──────────────────
+    function generateSVG(text, size, fg, bg, ecl) {
+      // Buat QR matrix via QRCode library internal
+      const tmpDiv = document.createElement("div");
+      tmpDiv.style.cssText = "position:fixed;left:-9999px;";
+      document.body.appendChild(tmpDiv);
+      new QRCode(tmpDiv, { text, width: 100, height: 100, colorDark: "#000", colorLight: "#fff", correctLevel: QRCode.CorrectLevel[ecl] });
+      const srcCanvas = tmpDiv.querySelector("canvas");
+      if (!srcCanvas) { document.body.removeChild(tmpDiv); return ""; }
+
+      // Baca pixel dari canvas 100×100
+      const ctx = srcCanvas.getContext("2d");
+      const w   = srcCanvas.width;
+      const h   = srcCanvas.height;
+      const px  = ctx.getImageData(0, 0, w, h).data;
+      const cellSize = size / w;
+      let rects = "";
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          const r = px[i], g = px[i+1], b = px[i+2];
+          if (r < 128 && g < 128 && b < 128) {
+            rects += `<rect x="${(x*cellSize).toFixed(2)}" y="${(y*cellSize).toFixed(2)}" width="${cellSize.toFixed(2)}" height="${cellSize.toFixed(2)}" fill="${fg}"/>`;
+          }
+        }
+      }
+      document.body.removeChild(tmpDiv);
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><rect width="${size}" height="${size}" fill="${bg}"/>${rects}</svg>`;
+    }
+
+    function triggerDownload(blob, filename) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    // ── Copy ke clipboard ──────────────────────────────────
+    async function copyQRClipboard() {
+      const canvas = document.querySelector("#qr-container canvas");
+      if (!canvas) { showToast("Generate QR dulu!", "error"); return; }
+      try {
+        const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        showToast("QR Code disalin ke clipboard ✓");
+      } catch(e) {
+        showToast("Browser tidak mendukung copy gambar", "error");
+      }
+    }
+
+    // ── Share (Web Share API) ──────────────────────────────
+    async function shareQR() {
+      const canvas = document.querySelector("#qr-container canvas");
+      if (!canvas) { showToast("Generate QR dulu!", "error"); return; }
+      const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+      const file = new File([blob], "qrcode.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({ title: "QR Code", files: [file] });
+      } else {
+        // Fallback: download
+        triggerDownload(blob, "qrcode.png");
+        showToast("Dibagikan via unduhan ✓");
+      }
+    }
+
+    // ── History ────────────────────────────────────────────
+    function saveHistory(text, canvas) {
+      const entry = {
+        text,
+        type:  currentType,
+        time:  Date.now(),
+        thumb: canvas.toDataURL("image/png"),
+      };
+      // Hindari duplikat
+      history = history.filter(h => h.text !== text);
+      history.unshift(entry);
+      if (history.length > 10) history = history.slice(0, 10);
+      localStorage.setItem("qr_history", JSON.stringify(history));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const card = document.getElementById("history-card");
+      const list = document.getElementById("history-list");
+      if (history.length === 0) { card.style.display = "none"; return; }
+      card.style.display = "block";
+      const typeLabels = { url:"🔗", text:"📝", wa:"💬", wifi:"📶", email:"📧" };
+      list.innerHTML = history.map((h, i) => `
+        <div class="history-item" onclick="loadHistory(${i})">
+          <img src="${h.thumb}" width="44" height="44" style="border-radius:4px;flex-shrink:0" />
+          <div class="history-text">
+            <p>${escHtml(h.text.length > 50 ? h.text.slice(0,50)+"…" : h.text)}</p>
+            <span>${typeLabels[h.type]||"📄"} ${new Date(h.time).toLocaleString("id-ID",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
+          </div>
+          <button class="history-del" onclick="deleteHistory(event,${i})">✕</button>
+        </div>`).join("");
+    }
+
+    function loadHistory(i) {
+      const h = history[i];
+      if (!h) return;
+      // Switch tipe
+      const btn = document.querySelector(`.itype-btn:nth-child(${["url","text","wa","wifi","email"].indexOf(h.type)+1})`);
+      if (btn) switchType(h.type, btn);
+      // Isi input
+      if (h.type === "url")  document.getElementById("inp-url").value  = h.text;
+      if (h.type === "text") document.getElementById("inp-text").value = h.text;
+      generateQR();
+    }
+
+    function deleteHistory(e, i) {
+      e.stopPropagation();
+      history.splice(i, 1);
+      localStorage.setItem("qr_history", JSON.stringify(history));
+      renderHistory();
+    }
+
+    function clearHistory() {
+      if (!confirm("Hapus semua riwayat?")) return;
+      history = [];
+      localStorage.setItem("qr_history", JSON.stringify(history));
+      renderHistory();
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    // ── Init ───────────────────────────────────────────────
+    renderHistory();
+
+    // Trigger semua radio button untuk generate ulang
+    document.querySelectorAll('input[name="qr-size"], input[name="qr-ecl"]').forEach(r => {
+      r.addEventListener("change", scheduleGenerate);
+    });
+  </script>
+</body>
+  </html>
