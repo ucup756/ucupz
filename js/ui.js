@@ -6,6 +6,7 @@ function renderSidebar(activePage) {
   const pages = [
     { id: "profil",    href: "profil.html",    icon: "👤", label: "Profil" },
     { id: "converter", href: "converter.html", icon: "🔄", label: "Converter" },
+    { id: "qrcode",    href: "qrcode.html",    icon: "📲", label: "QR Code" },
     { id: "share",     href: "share.html",     icon: "📡", label: "Berbagi File" },
     { id: "setting",   href: "setting.html",   icon: "⚙️",  label: "Pengaturan" },
   ];
@@ -17,6 +18,7 @@ function renderSidebar(activePage) {
         <span class="mnav-icon">${p.icon}</span>
         <span>${
           p.label === "Berbagi File" ? "Share" :
+          p.label === "QR Code"     ? "QR" :
           p.label
         }</span>
       </a>`).join("") +
@@ -121,4 +123,4 @@ function hexToRgba(hex, alpha) {
   const g = parseInt(hex.slice(3,5),16);
   const b = parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${alpha})`;
-    }
+                     }
