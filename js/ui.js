@@ -16,11 +16,13 @@ function renderSidebar(activePage) {
       <a href="${p.href}" class="mobile-nav-item ${activePage === p.id ? "active" : ""}">
         <span class="mnav-icon">${p.icon}</span>
         <span>${
-          p.label === "Gambar to Art" ? "Art" :
-          p.label === "Berbagi File"  ? "Share" :
+          p.label === "Berbagi File" ? "Share" :
           p.label
         }</span>
-      </a>`).join("");
+      </a>`).join("") +
+      `<button class="mobile-nav-item danger" onclick="logout()">
+        <span class="mnav-icon">🚪</span><span>Keluar</span>
+      </button>`;
     const nav = document.createElement("nav");
     nav.id = "mobile-navbar";
     nav.className = "mobile-navbar";
@@ -48,7 +50,10 @@ function renderSidebar(activePage) {
       ${navHTML}
       <div style="flex:1"></div>
       <p class="nav-section-label" style="margin-top:16px">Akun</p>
-      
+      <button class="nav-item danger" onclick="logout()">
+        <span class="nav-icon">🚪</span>
+        Logout
+      </button>
     </nav>
 
     <div class="sidebar-user">
@@ -116,4 +121,4 @@ function hexToRgba(hex, alpha) {
   const g = parseInt(hex.slice(3,5),16);
   const b = parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${alpha})`;
-}
+    }
