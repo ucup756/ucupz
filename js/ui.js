@@ -22,9 +22,7 @@ function renderSidebar(activePage) {
           p.label
         }</span>
       </a>`).join("") +
-      `<button class="mobile-nav-item danger" onclick="logout()">
-        <span class="mnav-icon">🚪</span><span>Keluar</span>
-      </button>`;
+     ;
     const nav = document.createElement("nav");
     nav.id = "mobile-navbar";
     nav.className = "mobile-navbar";
@@ -52,10 +50,7 @@ function renderSidebar(activePage) {
       ${navHTML}
       <div style="flex:1"></div>
       <p class="nav-section-label" style="margin-top:16px">Akun</p>
-      <button class="nav-item danger" onclick="logout()">
-        <span class="nav-icon">🚪</span>
-        Logout
-      </button>
+      
     </nav>
 
     <div class="sidebar-user">
