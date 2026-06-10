@@ -6,7 +6,6 @@ function renderSidebar(activePage) {
   const pages = [
     { id: "profil",    href: "profil.html",    icon: "👤", label: "Profil" },
     { id: "converter", href: "converter.html", icon: "🔄", label: "Converter" },
-    { id: "ascii",     href: "ascii.html",     icon: "🎨", label: "Gambar to Art" },
     { id: "share",     href: "share.html",     icon: "📡", label: "Berbagi File" },
     { id: "setting",   href: "setting.html",   icon: "⚙️",  label: "Pengaturan" },
   ];
