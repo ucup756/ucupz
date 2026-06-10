@@ -3,85 +3,452 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profil — MyApp</title>
+  <title>Profil — UcupzConvert</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/pages.css" />
+  <style>
+
+    /* ── Cover & Avatar ── */
+    .profile-cover {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, var(--accent) 0%, #ff6ab0 50%, var(--teal) 100%);
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .profile-cover::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 80% at 20% 50%, rgba(255,255,255,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 60% at 80% 30%, rgba(255,255,255,0.07) 0%, transparent 60%);
+    }
+    .cover-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.06;
+      background-image: repeating-linear-gradient(
+        45deg,
+        #fff 0px, #fff 1px,
+        transparent 1px, transparent 24px
+      );
+    }
+
+    .avatar-section {
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+      padding: 0 4px;
+      margin-top: -48px;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .avatar-ring {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      border: 4px solid var(--bg2);
+      background: var(--bg3);
+      flex-shrink: 0;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .avatar-ring img {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+    }
+    .avatar-online {
+      position: absolute;
+      bottom: 4px; right: 4px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--success);
+      border: 3px solid var(--bg2);
+    }
+
+    .profile-headline {
+      padding-bottom: 6px;
+      flex: 1;
+      min-width: 0;
+    }
+    .profile-headline h2 {
+      font-family: var(--font-head);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .profile-headline p {
+      font-size: 13px;
+      color: var(--text2);
+    }
+    .profile-headline .meta-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      color: var(--text2);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .stat-cell {
+      background: var(--surface);
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-val  { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--text); line-height: 1.1; }
+    .stat-lbl  { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+    /* ── Tab system ── */
+    .profile-tabs {
+      display: flex;
+      gap: 2px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .ptab {
+      padding: 10px 18px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text2);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ptab:hover  { color: var(--text); }
+    .ptab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ── Form section ── */
+    .form-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 14px;
+    }
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .field-full { grid-column: 1 / -1; }
+
+    /* ── Account info list ── */
+    .account-list { display: flex; flex-direction: column; }
+    .account-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .account-item:last-child { border: none; }
+    .ai-icon {
+      width: 38px; height: 38px;
+      border-radius: var(--radius-sm);
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .ai-body  { flex: 1; min-width: 0; }
+    .ai-label { font-size: 12px; color: var(--text3); }
+    .ai-value { font-size: 13.5px; font-weight: 500; color: var(--text); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ── Danger zone ── */
+    .danger-zone {
+      border: 1px solid rgba(255,107,107,0.2);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+    }
+    .danger-zone-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--danger);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .danger-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,107,107,0.1);
+    }
+    .danger-item:last-child { border: none; padding-bottom: 0; }
+    .danger-item-info p    { font-size: 13px; font-weight: 500; color: var(--text); }
+    .danger-item-info span { font-size: 11.5px; color: var(--text3); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .field-row { grid-template-columns: 1fr; }
+      .profile-headline h2 { font-size: 18px; }
+      .stats-row { grid-template-columns: repeat(3,1fr); }
+      .profile-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .ptab { white-space: nowrap; font-size: 12.5px; padding: 9px 14px; }
+      .avatar-section { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body class="app-page">
   <aside class="sidebar" id="sidebar"></aside>
 
   <main class="main-content">
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Profil</h1>
-        <p class="page-sub">Lihat dan edit informasi profilmu.</p>
+
+    <!-- Cover -->
+    <div class="profile-cover">
+      <div class="cover-pattern"></div>
+    </div>
+
+    <!-- Avatar + Headline -->
+    <div class="avatar-section">
+      <div class="avatar-ring">
+        <img id="profile-pic" src="" alt="Avatar" />
+        <span class="avatar-online"></span>
+      </div>
+      <div class="profile-headline">
+        <h2 id="display-name">—</h2>
+        <p id="display-email">—</p>
+        <div class="meta-chips">
+          <span class="meta-chip" id="chip-lokasi" style="display:none">📍 <span id="chip-lokasi-val"></span></span>
+          <span class="meta-chip" id="chip-website" style="display:none">🔗 <span id="chip-website-val"></span></span>
+          <span class="meta-chip">✦ <span>Member</span></span>
+        </div>
+      </div>
+      <!-- Logout button pindah ke sini -->
+      <button class="btn btn-danger" onclick="logout()" style="margin-bottom:6px;flex-shrink:0">
+        🚪 Logout
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-cell">
+        <div class="stat-val" id="stat-login">—</div>
+        <div class="stat-lbl">Hari bergabung</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val" id="stat-tools">22</div>
+        <div class="stat-lbl">Tools tersedia</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val">🟢</div>
+        <div class="stat-lbl">Status akun</div>
       </div>
     </div>
 
-    <!-- Kartu profil -->
-    <div class="profile-hero card">
-      <div class="profile-avatar-wrap">
-        <img id="profile-pic" src="" alt="Foto profil" class="profile-pic" />
-        <span class="profile-badge-online"></span>
-      </div>
-      <div class="profile-meta">
-        <h2 id="display-name" class="profile-name">—</h2>
-        <p id="display-email" class="profile-email">—</p>
-        <span class="badge badge-accent" id="display-role">Member</span>
+    <!-- Tabs -->
+    <div class="profile-tabs">
+      <button class="ptab active" onclick="switchTab('info', this)">👤 Info Profil</button>
+      <button class="ptab" onclick="switchTab('edit', this)">✏️ Edit Profil</button>
+      <button class="ptab" onclick="switchTab('account', this)">🔐 Akun</button>
+    </div>
+
+    <!-- Tab: Info Profil -->
+    <div class="tab-pane active" id="pane-info">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+          <img id="info-pic" src="" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid var(--border2);flex-shrink:0" />
+          <div>
+            <p style="font-size:17px;font-weight:700;color:var(--text)" id="info-name">—</p>
+            <p style="font-size:12.5px;color:var(--text2);margin-top:2px" id="info-username"></p>
+          </div>
+        </div>
+        <div class="divider"></div>
+
+        <div id="info-bio-wrap" style="margin-bottom:16px;display:none">
+          <p style="font-size:12px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;font-weight:600;letter-spacing:.05em">Bio</p>
+          <p id="info-bio" style="font-size:13.5px;color:var(--text);line-height:1.7"></p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="account-item" style="border:none;padding:10px 0" id="info-lokasi-row">
+            <div class="ai-icon">📍</div>
+            <div class="ai-body">
+              <p class="ai-label">Lokasi</p>
+              <p class="ai-value" id="info-lokasi">—</p>
+            </div>
+          </div>
+          <div class="account-item" style="border:none;padding:10px 0" id="info-website-row">
+            <div class="ai-icon">🔗</div>
+            <div class="ai-body">
+              <p class="ai-label">Website</p>
+              <p class="ai-value"><a id="info-website" href="#" target="_blank" style="color:var(--accent2)">—</a></p>
+            </div>
+          </div>
+          <div class="account-item" style="border:none;padding:10px 0">
+            <div class="ai-icon">📧</div>
+            <div class="ai-body">
+              <p class="ai-label">Email</p>
+              <p class="ai-value" id="info-email">—</p>
+            </div>
+          </div>
+          <div class="account-item" style="border:none;padding:10px 0">
+            <div class="ai-icon">🕐</div>
+            <div class="ai-body">
+              <p class="ai-label">Login terakhir</p>
+              <p class="ai-value" id="info-lastlogin">—</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;text-align:right">
+          <button class="btn btn-secondary" style="font-size:12.5px" onclick="switchTab('edit', document.querySelectorAll('.ptab')[1])">
+            ✏️ Edit Profil
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Form edit -->
-    <div class="card" style="margin-top:20px">
-      <h3 class="section-title">Edit Profil</h3>
-      <div class="divider"></div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">Nama Tampilan</label>
-          <input id="input-displayname" type="text" class="form-input" placeholder="Nama kamu..." />
+    <!-- Tab: Edit Profil -->
+    <div class="tab-pane" id="pane-edit">
+      <div class="card">
+        <p class="form-section-title">Informasi Dasar</p>
+        <div class="field-row">
+          <div class="form-group">
+            <label class="form-label">Nama Tampilan</label>
+            <input id="input-displayname" type="text" class="form-input" placeholder="Nama kamu..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input id="input-username" type="text" class="form-input" placeholder="@username" />
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Username</label>
-          <input id="input-username" type="text" class="form-input" placeholder="@username" />
-        </div>
-        <div class="form-group" style="grid-column:1/-1">
+        <div class="form-group field-full" style="margin-bottom:14px">
           <label class="form-label">Bio</label>
           <textarea id="input-bio" class="form-input" rows="3" placeholder="Ceritakan sedikit tentang dirimu..."></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">Lokasi</label>
-          <input id="input-lokasi" type="text" class="form-input" placeholder="Kota, Negara" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Website</label>
-          <input id="input-website" type="url" class="form-input" placeholder="https://..." />
-        </div>
-      </div>
 
-      <div style="display:flex; justify-content:flex-end; margin-top:20px">
-        <button class="btn btn-primary" onclick="saveProfile()">Simpan Perubahan</button>
+        <div class="divider"></div>
+        <p class="form-section-title">Kontak & Sosial</p>
+        <div class="field-row">
+          <div class="form-group">
+            <label class="form-label">Lokasi</label>
+            <input id="input-lokasi" type="text" class="form-input" placeholder="Kota, Negara" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Website</label>
+            <input id="input-website" type="url" class="form-input" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px">
+          <button class="btn btn-secondary" onclick="loadProfile()">↺ Reset</button>
+          <button class="btn btn-primary" onclick="saveProfile()">💾 Simpan Perubahan</button>
+        </div>
       </div>
     </div>
 
-    <!-- Info akun Google -->
-    <div class="card" style="margin-top:20px">
-      <h3 class="section-title">Akun Google</h3>
-      <div class="divider"></div>
-      <div class="info-row">
-        <span class="info-label">Email Google</span>
-        <span id="google-email" class="info-value">—</span>
+    <!-- Tab: Akun -->
+    <div class="tab-pane" id="pane-account">
+
+      <!-- Info akun Google -->
+      <div class="card" style="margin-bottom:16px">
+        <p class="form-section-title">Akun Google</p>
+        <div class="account-list">
+          <div class="account-item">
+            <div class="ai-icon">🪪</div>
+            <div class="ai-body">
+              <p class="ai-label">Nama lengkap</p>
+              <p class="ai-value" id="acc-name">—</p>
+            </div>
+          </div>
+          <div class="account-item">
+            <div class="ai-icon">📧</div>
+            <div class="ai-body">
+              <p class="ai-label">Email Google</p>
+              <p class="ai-value" id="acc-email">—</p>
+            </div>
+          </div>
+          <div class="account-item">
+            <div class="ai-icon">🕐</div>
+            <div class="ai-body">
+              <p class="ai-label">Login terakhir</p>
+              <p class="ai-value" id="acc-lastlogin">—</p>
+            </div>
+          </div>
+          <div class="account-item">
+            <div class="ai-icon">✅</div>
+            <div class="ai-body">
+              <p class="ai-label">Status</p>
+              <p class="ai-value"><span class="badge badge-success">Aktif</span></p>
+            </div>
+          </div>
+          <div class="account-item">
+            <div class="ai-icon">🔑</div>
+            <div class="ai-body">
+              <p class="ai-label">Metode login</p>
+              <p class="ai-value">Google OAuth 2.0</p>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="info-row">
-        <span class="info-label">Login Terakhir</span>
-        <span id="last-login" class="info-value">—</span>
-      </div>
-      <div class="info-row" style="border:none">
-        <span class="info-label">Status Akun</span>
-        <span class="badge badge-success">Aktif</span>
+
+      <!-- Logout & Danger zone -->
+      <div class="danger-zone">
+        <p class="danger-zone-title">⚠️ Zona Berbahaya</p>
+
+        <div class="danger-item">
+          <div class="danger-item-info">
+            <p>Keluar dari akun</p>
+            <span>Sesi akan dihapus, kamu perlu login ulang</span>
+          </div>
+          <button class="btn btn-danger" onclick="logout()">🚪 Logout</button>
+        </div>
+
+        <div class="danger-item">
+          <div class="danger-item-info">
+            <p>Hapus semua data lokal</p>
+            <span>Profil & pengaturan direset. Akun Google tidak terpengaruh.</span>
+          </div>
+          <button class="btn btn-danger" onclick="clearAllData()">🗑 Hapus Data</button>
+        </div>
       </div>
     </div>
+
   </main>
 
   <script src="../js/auth.js"></script>
@@ -91,27 +458,86 @@
     renderSidebar("profil");
     applyGlobalSettings();
 
+    // ── Tab switch ─────────────────────────────────────────
+    function switchTab(id, btn) {
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".ptab").forEach(b => b.classList.remove("active"));
+      document.getElementById("pane-" + id).classList.add("active");
+      btn.classList.add("active");
+    }
+
+    // ── Load profil ────────────────────────────────────────
     function loadProfile() {
       const saved = JSON.parse(localStorage.getItem("profile") || "{}");
 
-      document.getElementById("profile-pic").src       = user.picture || "";
-      document.getElementById("display-name").textContent  = saved.displayName || user.name || "—";
-      document.getElementById("display-email").textContent = user.email || "—";
-      document.getElementById("google-email").textContent  = user.email || "—";
+      // Avatar & nama
+      const pic = user.picture || "";
+      document.getElementById("profile-pic").src = pic;
+      document.getElementById("info-pic").src     = pic;
 
+      const displayName = saved.displayName || user.name || "—";
+      document.getElementById("display-name").textContent = displayName;
+      document.getElementById("info-name").textContent    = displayName;
+      document.getElementById("acc-name").textContent     = user.name || "—";
+
+      const email = user.email || "—";
+      document.getElementById("display-email").textContent = email;
+      document.getElementById("info-email").textContent    = email;
+      document.getElementById("acc-email").textContent     = email;
+
+      // Username
+      const username = saved.username ? "@" + saved.username.replace(/^@/,"") : "";
+      document.getElementById("info-username").textContent = username;
+
+      // Bio
+      if (saved.bio) {
+        document.getElementById("info-bio").textContent = saved.bio;
+        document.getElementById("info-bio-wrap").style.display = "block";
+      } else {
+        document.getElementById("info-bio-wrap").style.display = "none";
+      }
+
+      // Lokasi
+      document.getElementById("info-lokasi").textContent = saved.lokasi || "—";
+      if (saved.lokasi) {
+        document.getElementById("chip-lokasi").style.display = "inline-flex";
+        document.getElementById("chip-lokasi-val").textContent = saved.lokasi;
+      }
+
+      // Website
+      if (saved.website) {
+        const wsEl = document.getElementById("info-website");
+        wsEl.textContent = saved.website.replace(/^https?:\/\//,"");
+        wsEl.href = saved.website;
+        document.getElementById("chip-website").style.display = "inline-flex";
+        document.getElementById("chip-website-val").textContent = saved.website.replace(/^https?:\/\//,"");
+      } else {
+        document.getElementById("info-website").textContent = "—";
+      }
+
+      // Login at
+      const loginAt = localStorage.getItem("loginAt");
+      const loginFmt = loginAt
+        ? new Date(loginAt).toLocaleString("id-ID", {day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})
+        : "—";
+      document.getElementById("info-lastlogin").textContent = loginFmt;
+      document.getElementById("acc-lastlogin").textContent  = loginFmt;
+
+      // Stat: hitung hari sejak login pertama
+      if (loginAt) {
+        const days = Math.max(1, Math.round((Date.now() - new Date(loginAt)) / 86400000) + 1);
+        document.getElementById("stat-login").textContent = days;
+      }
+
+      // Form values
       document.getElementById("input-displayname").value = saved.displayName || user.name || "";
       document.getElementById("input-username").value    = saved.username || "";
       document.getElementById("input-bio").value         = saved.bio || "";
       document.getElementById("input-lokasi").value      = saved.lokasi || "";
       document.getElementById("input-website").value     = saved.website || "";
-
-      const loginAt = localStorage.getItem("loginAt");
-      if (loginAt) {
-        document.getElementById("last-login").textContent =
-          new Date(loginAt).toLocaleString("id-ID", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" });
-      }
     }
 
+    // ── Simpan profil ──────────────────────────────────────
     function saveProfile() {
       const profile = {
         displayName: document.getElementById("input-displayname").value.trim(),
@@ -121,11 +547,25 @@
         website:     document.getElementById("input-website").value.trim(),
       };
       localStorage.setItem("profile", JSON.stringify(profile));
-      document.getElementById("display-name").textContent = profile.displayName || user.name;
+      loadProfile();
       showToast("Profil berhasil disimpan ✓");
+      // Kembali ke tab info
+      switchTab("info", document.querySelectorAll(".ptab")[0]);
+    }
+
+    // ── Hapus data lokal ───────────────────────────────────
+    function clearAllData() {
+      if (!confirm("Yakin ingin menghapus semua data lokal? Kamu akan tetap login.")) return;
+      const userBackup  = localStorage.getItem("user");
+      const loginBackup = localStorage.getItem("loginAt");
+      localStorage.clear();
+      if (userBackup)  localStorage.setItem("user", userBackup);
+      if (loginBackup) localStorage.setItem("loginAt", loginBackup);
+      showToast("Data lokal berhasil dihapus ✓");
+      setTimeout(() => location.reload(), 900);
     }
 
     loadProfile();
   </script>
 </body>
-</html>
+        </html>
