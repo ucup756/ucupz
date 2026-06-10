@@ -666,6 +666,7 @@
       document.getElementById("panel-dropzone").style.display = "block";
       document.getElementById("img-source-preview-wrap").style.display = "none";
       document.getElementById("tool-panel").classList.add("show");
+			ascii: { title:"Gambar ke ASCII Art", desc:"Ubah gambar menjadi karakter teks ASCII", icon:"🎨", accept:"image/*", multiple:false, hint:"Upload 1 file gambar (JPG, PNG, WEBP)" },
 
       // Special inits
       if (id === "split") {
@@ -1418,6 +1419,7 @@
       showResult("Gambar berhasil digabung!", `${bitmaps.length} gambar → ${canvas.width}×${canvas.height}px`,
         [{ label:"Unduh JPG", blob, filename:"merged_image.jpg" }]);
     }
+		
 
     // ════════════════════════════════════════════════
     // DOKUMEN TOOLS
