@@ -5,16 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UcupzConvert</title>
 
-  <!-- Preconnect agar DNS resolve lebih awal -->
+  <!--
+    CATATAN DEPLOY:
+    Ganti nilai content di bawah dengan Client ID Google kamu.
+    Atau gunakan build script untuk inject dari environment variable.
+    Lihat README.md bagian "Setup Environment".
+  -->
+  <meta name="google-client-id" content="GANTI_DENGAN_CLIENT_ID_KAMU" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://accounts.google.com" crossorigin />
-  <link rel="icon" type="image/png" href="favicon.png">
 
-  <!-- Hanya load 1 font weight per family yang dipakai di login -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+  <link rel="apple-touch-icon" href="favicon-180.png" />
+  <link rel="manifest" href="manifest.json" />
+
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
 
-  <!-- CSS variabel minimal — tidak load style.css penuh -->
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -43,7 +52,6 @@
       overflow: hidden;
     }
 
-    /* Background — pakai CSS gradient statis, bukan animasi blob berat */
     body::before {
       content: '';
       position: fixed;
@@ -56,7 +64,6 @@
       z-index: 0;
     }
 
-    /* Card */
     .login-container {
       position: relative;
       z-index: 1;
@@ -76,8 +83,6 @@
       border: 1px solid var(--border2);
       border-radius: 24px;
       padding: 40px 36px;
-      /* backdrop-filter hanya aktif di desktop — di mobile mahal */
-      will-change: auto;
     }
 
     @media (min-width: 600px) {
@@ -88,7 +93,6 @@
       }
     }
 
-    /* Badge */
     .login-badge {
       display: inline-flex;
       align-items: center;
@@ -112,7 +116,6 @@
       text-transform: uppercase;
     }
 
-    /* Judul */
     .login-title {
       font-family: 'Syne', sans-serif;
       font-size: 40px;
@@ -139,10 +142,9 @@
       margin-bottom: 26px;
     }
 
-    /* Google button wrapper */
     .g_id_signin { display: flex; justify-content: center; }
 
-    /* Fallback saat GSI belum load */
+    /* Status / loading / error message */
     #gsi-loading {
       text-align: center;
       padding: 14px;
@@ -150,7 +152,8 @@
       font-size: 13px;
     }
     #gsi-loading .dots::after {
-      content: ''; animation: dots 1.2s steps(3, end) infinite;
+      content: '.';
+      animation: dots 1.2s steps(3, end) infinite;
     }
     @keyframes dots {
       0%   { content: '.'; }
@@ -180,19 +183,21 @@
 
       <div class="login-badge">
         <span class="badge-dot"></span>
-        <span class="badge-text">MyApp</span>
+        <span class="badge-text">UcupzConvert</span>
       </div>
 
       <h1 class="login-title">UCUPZ<br/><span>Converter</span></h1>
-      <p class="login-sub">Convert file paling josjis pokoknya Hehe<br>Ga percaya ? Coba aja !</p>
+      <p class="login-sub">Convert file paling josjis pokoknya Hehe<br>Ga percaya? Coba aja!</p>
 
       <div class="login-divider"></div>
 
-      <!-- Indikator fallback saat GSI belum siap -->
-      <div id="gsi-loading">Memuat tombol login<span class="dots"></span></div>
+      <div id="gsi-loading">Memuat tombol masuk<span class="dots"></span></div>
 
+      <!--
+        data-client_id diisi otomatis oleh script di bawah
+        dari meta tag "google-client-id" agar tidak hardcode di HTML
+      -->
       <div id="g_id_onload"
-        data-client_id="438060631154-skhv5ldhr9o738bmu0goa6nslj5pmq06.apps.googleusercontent.com"
         data-callback="handleLogin"
         data-auto_prompt="false">
       </div>
@@ -205,30 +210,45 @@
         data-width="300">
       </div>
 
-      <p class="login-note">Dengan masuk, kamu menyetujui syarat & ketentuan layanan ini.</p>
+      <p class="login-note">Dengan masuk, kamu menyetujui syarat &amp; ketentuan layanan ini.</p>
     </div>
   </main>
 
-  <!-- auth.js dulu sebelum GSI agar handleLogin siap -->
+  <!-- config.js dan auth.js dulu sebelum GSI agar handleLogin siap -->
+  <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
 
-  <!-- GSI load terakhir, non-blocking -->
   <script>
-    // Sembunyikan loading indicator begitu GSI siap
-    window.onGoogleLibraryLoad = function() {
+    // Inject client_id dari meta tag ke elemen GSI
+    (function () {
+      const clientId = document.querySelector('meta[name="google-client-id"]')?.content || "";
+      const gsiEl    = document.getElementById("g_id_onload");
+      if (gsiEl && clientId && clientId !== "GANTI_DENGAN_CLIENT_ID_KAMU") {
+        gsiEl.setAttribute("data-client_id", clientId);
+      } else if (!clientId || clientId === "GANTI_DENGAN_CLIENT_ID_KAMU") {
+        const el = document.getElementById("gsi-loading");
+        if (el) {
+          el.style.color = "#ff6b6b";
+          el.textContent = "⚠️ Client ID belum dikonfigurasi. Lihat README untuk setup.";
+        }
+      }
+    })();
+
+    window.onGoogleLibraryLoad = function () {
       const el = document.getElementById("gsi-loading");
       if (el) el.style.display = "none";
     };
 
-    // Timeout fallback: kalau 5 detik GSI tidak load, tampilkan pesan error
+    // Timeout fallback: 6 detik
     setTimeout(() => {
       const el = document.getElementById("gsi-loading");
-      if (el && el.style.display !== "none") {
-        el.innerHTML = '⚠️ Gagal memuat tombol login. Periksa koneksi internet kamu.';
-        el.style.color = '#ff6b6b';
+      if (el && el.style.display !== "none" && !el.style.color) {
+        el.innerHTML = "⚠️ Gagal memuat tombol masuk. Periksa koneksi internet kamu.";
+        el.style.color = "#ff6b6b";
       }
-    }, 5000);
+    }, 6000);
   </script>
+
   <script src="https://accounts.google.com/gsi/client" async defer
     onload="window.onGoogleLibraryLoad && window.onGoogleLibraryLoad()"></script>
 </body>
