@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pengaturan — MyApp</title>
+  <title>Pengaturan — UcupzConvert</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/pages.css" />
@@ -11,7 +11,16 @@
 <body class="app-page">
   <aside class="sidebar" id="sidebar"></aside>
 
-  <main class="main-content">
+  <!-- Skeleton loading — tampil sebelum JS berjalan -->
+  <div id="page-skeleton" style="margin-left:var(--sidebar-w);padding:36px 40px" aria-hidden="true">
+    <div class="skeleton" style="width:180px;height:28px;border-radius:8px;margin-bottom:8px"></div>
+    <div class="skeleton" style="width:300px;height:14px;border-radius:6px;margin-bottom:32px"></div>
+      <div class="skeleton skeleton-card" style="height:120px;border-radius:var(--radius);margin-bottom:12px"></div>
+      <div class="skeleton skeleton-card" style="height:120px;border-radius:var(--radius);margin-bottom:12px"></div>
+      <div class="skeleton skeleton-card" style="height:120px;border-radius:var(--radius);margin-bottom:12px"></div>
+  </div>
+
+  <main class="main-content" id="main-app-content" style="display:none">
     <div class="page-header">
       <div>
         <h1 class="page-title">Pengaturan</h1>
@@ -23,24 +32,26 @@
     <div class="card">
       <h3 class="section-title">Tampilan</h3>
       <div class="divider"></div>
-
       <div class="setting-row" style="border:none">
         <div class="setting-info">
           <p class="setting-label">Mode Tampilan</p>
           <p class="setting-desc">Pilih tema gelap atau terang — perubahan langsung diterapkan</p>
         </div>
         <div class="format-pills" style="margin:0">
-          <label class="format-pill"><input type="radio" name="display-mode" value="dark" checked onchange="applyDisplayMode(this.value)" /> 🌙 Gelap</label>
-          <label class="format-pill"><input type="radio" name="display-mode" value="light" onchange="applyDisplayMode(this.value)" /> ☀️ Terang</label>
+          <label class="format-pill">
+            <input type="radio" name="display-mode" value="dark" checked onchange="applyDisplayMode(this.value)" /> 🌙 Gelap
+          </label>
+          <label class="format-pill">
+            <input type="radio" name="display-mode" value="light" onchange="applyDisplayMode(this.value)" /> ☀️ Terang
+          </label>
         </div>
       </div>
     </div>
 
     <!-- Privasi -->
     <div class="card" style="margin-top:20px">
-      <h3 class="section-title">Privasi & Data</h3>
+      <h3 class="section-title">Privasi &amp; Data</h3>
       <div class="divider"></div>
-
       <div class="setting-row">
         <div class="setting-info">
           <p class="setting-label">Data tersimpan</p>
@@ -48,7 +59,6 @@
         </div>
         <span class="badge badge-accent" id="storage-size">—</span>
       </div>
-
       <div class="setting-row" style="border:none">
         <div class="setting-info">
           <p class="setting-label">Hapus semua data lokal</p>
@@ -58,57 +68,115 @@
       </div>
     </div>
 
+    <!-- Sesi -->
+    <div class="card" style="margin-top:20px">
+      <h3 class="section-title">Sesi &amp; Keamanan</h3>
+      <div class="divider"></div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <p class="setting-label">Durasi sesi</p>
+          <p class="setting-desc">Kamu akan otomatis keluar setelah 24 jam tidak aktif</p>
+        </div>
+        <span class="badge badge-accent">24 jam</span>
+      </div>
+      <div class="setting-row" style="border:none">
+        <div class="setting-info">
+          <p class="setting-label">Sesi aktif sejak</p>
+          <p class="setting-desc" id="session-since">—</p>
+        </div>
+        <button class="btn btn-secondary" onclick="renewSession()" style="font-size:12.5px">
+          🔄 Perpanjang Sesi
+        </button>
+      </div>
+    </div>
+
     <!-- Tentang -->
     <div class="card" style="margin-top:20px">
       <h3 class="section-title">Tentang Aplikasi</h3>
       <div class="divider"></div>
-      <div class="info-row"><span class="info-label">Versi</span><span class="info-value">1.0.0</span></div>
+      <div class="info-row"><span class="info-label">Versi</span><span class="info-value">1.1.0</span></div>
       <div class="info-row"><span class="info-label">Platform</span><span class="info-value">Web (HTML + JS)</span></div>
-      <div class="info-row" style="border:none"><span class="info-label">Login</span><span class="info-value">Google OAuth 2.0</span></div>
+      <div class="info-row" style="border:none"><span class="info-label">Autentikasi</span><span class="info-value">Google OAuth 2.0 + Server Verification</span></div>
     </div>
   </main>
 
-
+  <script src="../js/config.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/ui.js"></script>
   <script>
     requireLogin();
+
+    // Tampilkan halaman, sembunyikan skeleton
+    (function() {
+      var sk = document.getElementById("page-skeleton");
+      var mc = document.getElementById("main-app-content");
+      if (sk) sk.style.display = "none";
+      if (mc) mc.style.display = "block";
+    })();
     renderSidebar("setting");
     applyGlobalSettings();
 
+    /** Muat pengaturan dari localStorage dan terapkan ke UI. */
     function loadSettings() {
-      const s = JSON.parse(localStorage.getItem("settings") || "{}");
+      const s = (() => {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || "{}"); }
+        catch(_) { return {}; }
+      })();
+
       if (s.darkMode === "light") {
-        document.querySelectorAll('input[name="display-mode"]').forEach(r => r.checked = r.value === "light");
+        document.querySelectorAll('input[name="display-mode"]').forEach(r => {
+          r.checked = r.value === "light";
+        });
         document.documentElement.setAttribute("data-theme", "light");
       }
 
+      // Hitung ukuran localStorage
       let total = 0;
-      for (let k in localStorage) { if (localStorage.hasOwnProperty(k)) total += (localStorage[k].length + k.length) * 2; }
-      document.getElementById("storage-size").textContent = total < 1024 ? total + " B" : (total/1024).toFixed(1) + " KB";
+      Object.values(STORAGE_KEYS).forEach(k => {
+        const v = localStorage.getItem(k);
+        if (v) total += (v.length + k.length) * 2;
+      });
+      document.getElementById("storage-size").textContent =
+        total < 1024 ? total + " B" : (total / 1024).toFixed(1) + " KB";
+
+      // Tampilkan waktu sesi aktif
+      const loginAt = localStorage.getItem(STORAGE_KEYS.LOGIN_AT);
+      if (loginAt) {
+        const fmt = new Date(loginAt).toLocaleString("id-ID", {
+          day: "numeric", month: "long", year: "numeric",
+          hour: "2-digit", minute: "2-digit"
+        });
+        document.getElementById("session-since").textContent = fmt;
+      }
     }
 
+    /** Terapkan mode tampilan dan simpan ke pengaturan. */
     function applyDisplayMode(mode) {
-      if (mode === "light") document.documentElement.setAttribute("data-theme", "light");
-      else document.documentElement.removeAttribute("data-theme");
+      if (mode === "light") {
+        document.documentElement.setAttribute("data-theme", "light");
+      } else {
+        document.documentElement.removeAttribute("data-theme");
+      }
       saveSettings();
     }
 
+    /** Simpan pengaturan ke localStorage. */
     function saveSettings() {
       const s = {
         darkMode: document.querySelector('input[name="display-mode"]:checked')?.value || "dark",
       };
-      localStorage.setItem("settings", JSON.stringify(s));
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(s));
       showToast("Pengaturan disimpan ✓");
     }
 
+    /** Hapus semua data lokal kecuali data sesi. */
     function clearAllData() {
-      if (!confirm("Yakin ingin menghapus semua data lokal? Kamu akan tetap login dengan Google.")) return;
-      const userBackup  = localStorage.getItem("user");
-      const loginBackup = localStorage.getItem("loginAt");
+      if (!confirm("Yakin ingin menghapus semua data lokal? Kamu akan tetap masuk dengan Google.")) return;
+      const userBackup  = localStorage.getItem(STORAGE_KEYS.USER);
+      const loginBackup = localStorage.getItem(STORAGE_KEYS.LOGIN_AT);
       localStorage.clear();
-      if (userBackup)  localStorage.setItem("user", userBackup);
-      if (loginBackup) localStorage.setItem("loginAt", loginBackup);
+      if (userBackup)  localStorage.setItem(STORAGE_KEYS.USER,     userBackup);
+      if (loginBackup) localStorage.setItem(STORAGE_KEYS.LOGIN_AT, loginBackup);
       showToast("Data lokal berhasil dihapus ✓");
       setTimeout(() => location.reload(), 1000);
     }
