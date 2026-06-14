@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Halaman Tidak Ditemukan | UcupzConvert</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #08080f;
+      --bg2:       #0e0e1a;
+      --bg3:       #16162a;
+      --surface:   #1c1c30;
+      --border:    rgba(255,255,255,0.07);
+      --border2:   rgba(255,255,255,0.13);
+      --accent:    #7c6aff;
+      --accent2:   #b8abff;
+      --accent-glow: rgba(124,106,255,0.25);
+      --pink:      #ff6ab0;
+      --teal:      #00d4a8;
+      --text:      #eeedf8;
+      --text2:     #8887a4;
+      --text3:     #4a4962;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Latar gradien ambient */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 15% 20%, rgba(124,106,255,0.15) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 45% at 85% 80%, rgba(255,106,176,0.10) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,212,168,0.05) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 24px;
+      max-width: 520px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Angka 404 besar */
+    .error-code {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(96px, 20vw, 160px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, var(--accent2) 0%, var(--pink) 50%, var(--teal) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+      position: relative;
+    }
+
+    /* Titik dekoratif mengambang */
+    .error-code::before {
+      content: '✦';
+      position: absolute;
+      top: -16px;
+      right: -8px;
+      font-size: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: floatDot 3s ease-in-out infinite;
+    }
+    @keyframes floatDot {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50%       { transform: translateY(-8px) rotate(15deg); }
+    }
+
+    .error-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255,107,107,0.12);
+      border: 1px solid rgba(255,107,107,0.25);
+      border-radius: 20px;
+      padding: 4px 14px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ff6b6b;
+      letter-spacing: 0.05em;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(20px, 5vw, 28px);
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.65;
+      margin-bottom: 32px;
+    }
+
+    /* Tombol-tombol aksi */
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 22px;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s ease;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-2px); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text2);
+      border: 1px solid var(--border2);
+    }
+    .btn-secondary:hover { color: var(--text); background: var(--bg3); }
+
+    /* Tautan cepat */
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .quick-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      font-size: 12.5px;
+      color: var(--text2);
+      text-decoration: none;
+      transition: all 0.18s ease;
+    }
+    .quick-link:hover {
+      border-color: var(--accent);
+      color: var(--accent2);
+      background: rgba(124,106,255,0.08);
+      text-decoration: none;
+    }
+
+    /* Label di atas tautan cepat */
+    .quick-label {
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    /* Brand kecil di bawah */
+    .brand-footer {
+      margin-top: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0.45;
+    }
+    .brand-icon-sm {
+      width: 20px; height: 20px;
+      background: linear-gradient(135deg, var(--accent), var(--pink));
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+    }
+    .brand-name-sm {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    @media (max-width: 480px) {
+      .actions { flex-direction: column; align-items: center; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="error-code">404</div>
+
+    <div class="error-badge">⚠️ Halaman tidak ditemukan</div>
+
+    <h1>Aduh, halaman ini tidak ada!</h1>
+    <p>
+      Tautan yang kamu buka mungkin sudah dipindahkan, dihapus,<br>
+      atau memang tidak pernah ada. Coba kembali ke beranda.
+    </p>
+
+    <div class="actions">
+      <a href="/" class="btn btn-primary">🏠 Kembali ke Beranda</a>
+      <button class="btn btn-secondary" onclick="history.back()">← Halaman Sebelumnya</button>
+    </div>
+
+    <p class="quick-label">Atau langsung ke</p>
+    <div class="quick-links">
+      <a href="/pages/profil.html"    class="quick-link">👤 Profil</a>
+      <a href="/pages/converter.html" class="quick-link">🔄 Converter</a>
+      <a href="/pages/qrcode.html"    class="quick-link">📲 QR Code</a>
+      <a href="/pages/share.html"     class="quick-link">📡 Berbagi File</a>
+      <a href="/pages/setting.html"   class="quick-link">⚙️ Pengaturan</a>
+    </div>
+
+    <div class="brand-footer">
+      <div class="brand-icon-sm">✦</div>
+      <span class="brand-name-sm">UcupzConvert</span>
+    </div>
+
+  </div>
+</body>
+</html>
