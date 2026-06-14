@@ -927,3 +927,24 @@
   margin-bottom: 12px;
 }
 .mt-action { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 768px) {
+  /* Grid 2 kolom di profil jadi 1 kolom */
+  .two-col-grid,
+  [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stats row 3 kolom tetap tapi teks lebih kecil */
+  .stat-val { font-size: 16px; }
+  .stat-lbl { font-size: 10px; }
+
+  /* Pastikan semua card tidak overflow */
+  .card {
+    overflow: hidden;
+  }
+
+  /* Avatar section di mobile */
+  .avatar-section {
+    margin-top: -36px;
+  }
+}
