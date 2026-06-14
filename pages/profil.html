@@ -8,8 +8,6 @@
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/pages.css" />
   <style>
-
-    /* ── Cover & Avatar ── */
     .profile-cover {
       width: 100%;
       height: 160px;
@@ -37,7 +35,6 @@
         transparent 1px, transparent 24px
       );
     }
-
     .avatar-section {
       display: flex;
       align-items: flex-end;
@@ -71,7 +68,6 @@
       background: var(--success);
       border: 3px solid var(--bg2);
     }
-
     .profile-headline {
       padding-bottom: 6px;
       flex: 1;
@@ -108,8 +104,6 @@
       border-radius: 20px;
       padding: 3px 10px;
     }
-
-    /* ── Stats row ── */
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -126,8 +120,6 @@
     }
     .stat-val  { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--text); line-height: 1.1; }
     .stat-lbl  { font-size: 11px; color: var(--text3); margin-top: 3px; }
-
-    /* ── Tab system ── */
     .profile-tabs {
       display: flex;
       gap: 2px;
@@ -151,11 +143,8 @@
     }
     .ptab:hover  { color: var(--text); }
     .ptab.active { color: var(--accent2); border-bottom-color: var(--accent); }
-
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
-
-    /* ── Form section ── */
     .form-section-title {
       font-size: 11px;
       font-weight: 600;
@@ -171,8 +160,6 @@
       margin-bottom: 14px;
     }
     .field-full { grid-column: 1 / -1; }
-
-    /* ── Account info list ── */
     .account-list { display: flex; flex-direction: column; }
     .account-item {
       display: flex;
@@ -194,8 +181,6 @@
     .ai-body  { flex: 1; min-width: 0; }
     .ai-label { font-size: 12px; color: var(--text3); }
     .ai-value { font-size: 13.5px; font-weight: 500; color: var(--text); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    /* ── Danger zone ── */
     .danger-zone {
       border: 1px solid rgba(255,107,107,0.2);
       border-radius: var(--radius);
@@ -221,12 +206,9 @@
     .danger-item:last-child { border: none; padding-bottom: 0; }
     .danger-item-info p    { font-size: 13px; font-weight: 500; color: var(--text); }
     .danger-item-info span { font-size: 11.5px; color: var(--text3); }
-
-    /* ── Responsive ── */
     @media (max-width: 768px) {
       .field-row { grid-template-columns: 1fr; }
       .profile-headline h2 { font-size: 18px; }
-      .stats-row { grid-template-columns: repeat(3,1fr); }
       .profile-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .ptab { white-space: nowrap; font-size: 12.5px; padding: 9px 14px; }
       .avatar-section { flex-direction: column; align-items: flex-start; }
@@ -236,17 +218,22 @@
 <body class="app-page">
   <aside class="sidebar" id="sidebar"></aside>
 
-  <main class="main-content">
+  <!-- Skeleton loading — tampil sebelum JS berjalan -->
+  <div id="page-skeleton" style="margin-left:var(--sidebar-w);padding:36px 40px" aria-hidden="true">
+    <div class="skeleton" style="width:180px;height:28px;border-radius:8px;margin-bottom:8px"></div>
+    <div class="skeleton" style="width:300px;height:14px;border-radius:6px;margin-bottom:32px"></div>
+      <div class="skeleton skeleton-card" style="height:120px;border-radius:var(--radius);margin-bottom:12px"></div>
+      <div class="skeleton skeleton-card" style="height:120px;border-radius:var(--radius);margin-bottom:12px"></div>
+  </div>
 
-    <!-- Cover -->
+  <main class="main-content" id="main-app-content" style="display:none">
     <div class="profile-cover">
       <div class="cover-pattern"></div>
     </div>
 
-    <!-- Avatar + Headline -->
     <div class="avatar-section">
       <div class="avatar-ring">
-        <img id="profile-pic" src="" alt="Avatar" />
+        <img id="profile-pic" src="" alt="Avatar pengguna" />
         <span class="avatar-online"></span>
       </div>
       <div class="profile-headline">
@@ -255,19 +242,18 @@
         <div class="meta-chips">
           <span class="meta-chip" id="chip-lokasi" style="display:none">📍 <span id="chip-lokasi-val"></span></span>
           <span class="meta-chip" id="chip-website" style="display:none">🔗 <span id="chip-website-val"></span></span>
-          <span class="meta-chip">✦ <span>Member</span></span>
+          <span class="meta-chip">✦ <span>Anggota</span></span>
         </div>
       </div>
     </div>
 
-    <!-- Stats -->
     <div class="stats-row">
       <div class="stat-cell">
         <div class="stat-val" id="stat-login">—</div>
         <div class="stat-lbl">Hari bergabung</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-val" id="stat-tools">22</div>
+        <div class="stat-val" id="stat-tools">25</div>
         <div class="stat-lbl">Tools tersedia</div>
       </div>
       <div class="stat-cell">
@@ -276,10 +262,9 @@
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="profile-tabs">
       <button class="ptab active" onclick="switchTab('info', this)">👤 Info Profil</button>
-      <button class="ptab" onclick="switchTab('edit', this)">✏️ Edit Profil</button>
+      <button class="ptab" onclick="switchTab('edit', this)">✏️ Ubah Profil</button>
       <button class="ptab" onclick="switchTab('account', this)">🔐 Akun</button>
     </div>
 
@@ -287,42 +272,40 @@
     <div class="tab-pane active" id="pane-info">
       <div class="card">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
-          <img id="info-pic" src="" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid var(--border2);flex-shrink:0" />
+          <img id="info-pic" src="" alt="" class="info-pic-sm" />
           <div>
-            <p style="font-size:17px;font-weight:700;color:var(--text)" id="info-name">—</p>
-            <p style="font-size:12.5px;color:var(--text2);margin-top:2px" id="info-username"></p>
+            <p class="info-name-lg" id="info-name">—</p>
+            <p class="info-sub" id="info-username"></p>
           </div>
         </div>
         <div class="divider"></div>
-
         <div id="info-bio-wrap" style="margin-bottom:16px;display:none">
-          <p style="font-size:12px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;font-weight:600;letter-spacing:.05em">Bio</p>
-          <p id="info-bio" style="font-size:13.5px;color:var(--text);line-height:1.7"></p>
+          <p class="bio-label">Bio</p>
+          <p id="info-bio" class="bio-text"></p>
         </div>
-
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div class="account-item" style="border:none;padding:10px 0" id="info-lokasi-row">
+          <div class="account-item account-item-flush">
             <div class="ai-icon">📍</div>
             <div class="ai-body">
               <p class="ai-label">Lokasi</p>
               <p class="ai-value" id="info-lokasi">—</p>
             </div>
           </div>
-          <div class="account-item" style="border:none;padding:10px 0" id="info-website-row">
+          <div class="account-item account-item-flush">
             <div class="ai-icon">🔗</div>
             <div class="ai-body">
-              <p class="ai-label">Website</p>
-              <p class="ai-value"><a id="info-website" href="#" target="_blank" style="color:var(--accent2)">—</a></p>
+              <p class="ai-label">Situs Web</p>
+              <p class="ai-value"><a id="info-website" href="#" target="_blank" rel="noopener noreferrer" class="link-accent">—</a></p>
             </div>
           </div>
-          <div class="account-item" style="border:none;padding:10px 0">
+          <div class="account-item account-item-flush">
             <div class="ai-icon">📧</div>
             <div class="ai-body">
-              <p class="ai-label">Email</p>
+              <p class="ai-label">Surel</p>
               <p class="ai-value" id="info-email">—</p>
             </div>
           </div>
-          <div class="account-item" style="border:none;padding:10px 0">
+          <div class="account-item account-item-flush">
             <div class="ai-icon">🕐</div>
             <div class="ai-body">
               <p class="ai-label">Login terakhir</p>
@@ -330,47 +313,53 @@
             </div>
           </div>
         </div>
-
         <div style="margin-top:16px;text-align:right">
           <button class="btn btn-secondary" style="font-size:12.5px" onclick="switchTab('edit', document.querySelectorAll('.ptab')[1])">
-            ✏️ Edit Profil
+            ✏️ Ubah Profil
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Tab: Edit Profil -->
+    <!-- Tab: Ubah Profil -->
     <div class="tab-pane" id="pane-edit">
       <div class="card">
         <p class="form-section-title">Informasi Dasar</p>
         <div class="field-row">
           <div class="form-group">
-            <label class="form-label">Nama Tampilan</label>
-            <input id="input-displayname" type="text" class="form-input" placeholder="Nama kamu..." />
+            <label class="form-label" for="input-displayname">Nama Tampilan</label>
+            <input id="input-displayname" type="text" class="form-input"
+              placeholder="Nama kamu..." maxlength="100"
+              oninput="this.value=this.value.replace(/[<>\"'`]/g,'')" />
           </div>
           <div class="form-group">
-            <label class="form-label">Username</label>
-            <input id="input-username" type="text" class="form-input" placeholder="@username" />
+            <label class="form-label" for="input-username">Nama Pengguna</label>
+            <input id="input-username" type="text" class="form-input"
+              placeholder="@namapengguna" maxlength="50"
+              oninput="this.value=this.value.replace(/[^a-zA-Z0-9_.-]/g,'')" />
           </div>
         </div>
         <div class="form-group field-full" style="margin-bottom:14px">
-          <label class="form-label">Bio</label>
-          <textarea id="input-bio" class="form-input" rows="3" placeholder="Ceritakan sedikit tentang dirimu..."></textarea>
+          <label class="form-label" for="input-bio">Bio</label>
+          <textarea id="input-bio" class="form-input" rows="3"
+            placeholder="Ceritakan sedikit tentang dirimu..." maxlength="300"
+            oninput="this.value=this.value.replace(/[<>\"'`]/g,'')"></textarea>
         </div>
-
         <div class="divider"></div>
-        <p class="form-section-title">Kontak & Sosial</p>
+        <p class="form-section-title">Kontak &amp; Media Sosial</p>
         <div class="field-row">
           <div class="form-group">
-            <label class="form-label">Lokasi</label>
-            <input id="input-lokasi" type="text" class="form-input" placeholder="Kota, Negara" />
+            <label class="form-label" for="input-lokasi">Lokasi</label>
+            <input id="input-lokasi" type="text" class="form-input"
+              placeholder="Kota, Negara" maxlength="100"
+              oninput="this.value=this.value.replace(/[<>\"'`]/g,'')" />
           </div>
           <div class="form-group">
-            <label class="form-label">Website</label>
-            <input id="input-website" type="url" class="form-input" placeholder="https://..." />
+            <label class="form-label" for="input-website">Situs Web</label>
+            <input id="input-website" type="url" class="form-input"
+              placeholder="https://..." maxlength="500" />
           </div>
         </div>
-
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px">
           <button class="btn btn-secondary" onclick="loadProfile()">↺ Reset</button>
           <button class="btn btn-primary" onclick="saveProfile()">💾 Simpan Perubahan</button>
@@ -380,8 +369,6 @@
 
     <!-- Tab: Akun -->
     <div class="tab-pane" id="pane-account">
-
-      <!-- Info akun Google -->
       <div class="card" style="margin-bottom:16px">
         <p class="form-section-title">Akun Google</p>
         <div class="account-list">
@@ -395,7 +382,7 @@
           <div class="account-item">
             <div class="ai-icon">📧</div>
             <div class="ai-body">
-              <p class="ai-label">Email Google</p>
+              <p class="ai-label">Surel Google</p>
               <p class="ai-value" id="acc-email">—</p>
             </div>
           </div>
@@ -416,44 +403,49 @@
           <div class="account-item">
             <div class="ai-icon">🔑</div>
             <div class="ai-body">
-              <p class="ai-label">Metode login</p>
+              <p class="ai-label">Metode masuk</p>
               <p class="ai-value">Google OAuth 2.0</p>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Danger zone -->
       <div class="danger-zone">
         <p class="danger-zone-title">⚠️ Zona Berbahaya</p>
         <div class="danger-item">
           <div class="danger-item-info">
             <p>Hapus semua data lokal</p>
-            <span>Profil & pengaturan direset. Akun Google tidak terpengaruh.</span>
+            <span>Profil &amp; pengaturan direset. Akun Google tidak terpengaruh.</span>
           </div>
           <button class="btn btn-danger" onclick="clearAllData()">🗑 Hapus Data</button>
         </div>
       </div>
     </div>
 
-    <!-- Logout — paling bawah halaman -->
     <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border)">
       <button class="btn btn-danger" onclick="logout()" style="width:100%;justify-content:center;padding:12px;font-size:14px">
         🚪 Keluar dari Akun
       </button>
-      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px">Sesi akan dihapus dan kamu perlu login ulang dengan Google.</p>
+      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px">Sesi akan dihapus dan kamu perlu masuk kembali dengan Google.</p>
     </div>
-
   </main>
 
+  <script src="../js/config.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/ui.js"></script>
   <script>
     const user = requireLogin();
+
+    // Tampilkan halaman, sembunyikan skeleton
+    (function() {
+      var sk = document.getElementById("page-skeleton");
+      var mc = document.getElementById("main-app-content");
+      if (sk) sk.style.display = "none";
+      if (mc) mc.style.display = "block";
+    })();
     renderSidebar("profil");
     applyGlobalSettings();
 
-    // ── Tab switch ─────────────────────────────────────────
+    /** Ganti tab aktif profil. */
     function switchTab(id, btn) {
       document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
       document.querySelectorAll(".ptab").forEach(b => b.classList.remove("active"));
@@ -461,101 +453,104 @@
       btn.classList.add("active");
     }
 
-    // ── Load profil ────────────────────────────────────────
+    /** Muat data profil dari localStorage dan tampilkan ke UI. */
     function loadProfile() {
-      const saved = JSON.parse(localStorage.getItem("profile") || "{}");
+      const saved = (() => {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILE) || "{}"); }
+        catch(_) { return {}; }
+      })();
 
-      // Avatar & nama
-      const pic = user.picture || "";
+      const pic = sanitizeUrl(user.picture || "");
       document.getElementById("profile-pic").src = pic;
       document.getElementById("info-pic").src     = pic;
 
-      const displayName = saved.displayName || user.name || "—";
+      const displayName = sanitizeString(saved.displayName || user.name || "—", 100);
       document.getElementById("display-name").textContent = displayName;
       document.getElementById("info-name").textContent    = displayName;
-      document.getElementById("acc-name").textContent     = user.name || "—";
+      document.getElementById("acc-name").textContent     = sanitizeString(user.name || "—", 100);
 
-      const email = user.email || "—";
+      const email = sanitizeString(user.email || "—", 200);
       document.getElementById("display-email").textContent = email;
       document.getElementById("info-email").textContent    = email;
       document.getElementById("acc-email").textContent     = email;
 
-      // Username
-      const username = saved.username ? "@" + saved.username.replace(/^@/,"") : "";
+      const username = saved.username ? "@" + sanitizeString(saved.username.replace(/^@/, ""), 50) : "";
       document.getElementById("info-username").textContent = username;
 
-      // Bio
       if (saved.bio) {
-        document.getElementById("info-bio").textContent = saved.bio;
+        document.getElementById("info-bio").textContent     = sanitizeString(saved.bio, 300);
         document.getElementById("info-bio-wrap").style.display = "block";
       } else {
         document.getElementById("info-bio-wrap").style.display = "none";
       }
 
-      // Lokasi
-      document.getElementById("info-lokasi").textContent = saved.lokasi || "—";
-      if (saved.lokasi) {
+      const lokasi = sanitizeString(saved.lokasi || "", 100);
+      document.getElementById("info-lokasi").textContent = lokasi || "—";
+      if (lokasi) {
         document.getElementById("chip-lokasi").style.display = "inline-flex";
-        document.getElementById("chip-lokasi-val").textContent = saved.lokasi;
+        document.getElementById("chip-lokasi-val").textContent = lokasi;
       }
 
-      // Website
-      if (saved.website) {
+      const website = sanitizeUrl(saved.website || "");
+      if (website) {
         const wsEl = document.getElementById("info-website");
-        wsEl.textContent = saved.website.replace(/^https?:\/\//,"");
-        wsEl.href = saved.website;
+        wsEl.textContent = website.replace(/^https?:\/\//, "");
+        wsEl.href = website;
         document.getElementById("chip-website").style.display = "inline-flex";
-        document.getElementById("chip-website-val").textContent = saved.website.replace(/^https?:\/\//,"");
+        document.getElementById("chip-website-val").textContent = website.replace(/^https?:\/\//, "");
       } else {
         document.getElementById("info-website").textContent = "—";
+        document.getElementById("info-website").removeAttribute("href");
       }
 
-      // Login at
-      const loginAt = localStorage.getItem("loginAt");
+      const loginAt  = localStorage.getItem(STORAGE_KEYS.LOGIN_AT);
       const loginFmt = loginAt
-        ? new Date(loginAt).toLocaleString("id-ID", {day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})
+        ? new Date(loginAt).toLocaleString("id-ID", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })
         : "—";
       document.getElementById("info-lastlogin").textContent = loginFmt;
       document.getElementById("acc-lastlogin").textContent  = loginFmt;
 
-      // Stat: hitung hari sejak login pertama
       if (loginAt) {
         const days = Math.max(1, Math.round((Date.now() - new Date(loginAt)) / 86400000) + 1);
         document.getElementById("stat-login").textContent = days;
       }
 
-      // Form values
       document.getElementById("input-displayname").value = saved.displayName || user.name || "";
-      document.getElementById("input-username").value    = saved.username || "";
-      document.getElementById("input-bio").value         = saved.bio || "";
-      document.getElementById("input-lokasi").value      = saved.lokasi || "";
-      document.getElementById("input-website").value     = saved.website || "";
+      document.getElementById("input-username").value    = saved.username    || "";
+      document.getElementById("input-bio").value         = saved.bio         || "";
+      document.getElementById("input-lokasi").value      = saved.lokasi      || "";
+      document.getElementById("input-website").value     = saved.website     || "";
     }
 
-    // ── Simpan profil ──────────────────────────────────────
+    /** Simpan data profil ke localStorage setelah sanitasi. */
     function saveProfile() {
+      const website = sanitizeUrl(document.getElementById("input-website").value.trim());
+      if (document.getElementById("input-website").value.trim() && !website) {
+        showToast("Format URL situs web tidak valid (harus diawali https://)", "error");
+        return;
+      }
+
       const profile = {
-        displayName: document.getElementById("input-displayname").value.trim(),
-        username:    document.getElementById("input-username").value.trim(),
-        bio:         document.getElementById("input-bio").value.trim(),
-        lokasi:      document.getElementById("input-lokasi").value.trim(),
-        website:     document.getElementById("input-website").value.trim(),
+        displayName: sanitizeString(document.getElementById("input-displayname").value, 100),
+        username:    sanitizeString(document.getElementById("input-username").value, 50),
+        bio:         sanitizeString(document.getElementById("input-bio").value, 300),
+        lokasi:      sanitizeString(document.getElementById("input-lokasi").value, 100),
+        website,
       };
-      localStorage.setItem("profile", JSON.stringify(profile));
+      localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
       loadProfile();
       showToast("Profil berhasil disimpan ✓");
-      // Kembali ke tab info
       switchTab("info", document.querySelectorAll(".ptab")[0]);
     }
 
-    // ── Hapus data lokal ───────────────────────────────────
+    /** Hapus semua data lokal kecuali sesi user. */
     function clearAllData() {
-      if (!confirm("Yakin ingin menghapus semua data lokal? Kamu akan tetap login.")) return;
-      const userBackup  = localStorage.getItem("user");
-      const loginBackup = localStorage.getItem("loginAt");
+      if (!confirm("Yakin ingin menghapus semua data lokal? Kamu akan tetap masuk.")) return;
+      const userBackup  = localStorage.getItem(STORAGE_KEYS.USER);
+      const loginBackup = localStorage.getItem(STORAGE_KEYS.LOGIN_AT);
       localStorage.clear();
-      if (userBackup)  localStorage.setItem("user", userBackup);
-      if (loginBackup) localStorage.setItem("loginAt", loginBackup);
+      if (userBackup)  localStorage.setItem(STORAGE_KEYS.USER,     userBackup);
+      if (loginBackup) localStorage.setItem(STORAGE_KEYS.LOGIN_AT, loginBackup);
       showToast("Data lokal berhasil dihapus ✓");
       setTimeout(() => location.reload(), 900);
     }
@@ -563,4 +558,4 @@
     loadProfile();
   </script>
 </body>
-            </html>
+</html>
