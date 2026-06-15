@@ -80,12 +80,12 @@
   </div>
 
   <main class="main-content" id="main-app-content" style="display:none">
-    <div class="page-header">
+    <div class="page-header share-page-header">
       <div>
         <h1 class="page-title">Berbagi File</h1>
         <p class="page-sub">Transfer langsung antar browser — P2P terenkripsi, tidak ada file yang disimpan ke server.</p>
       </div>
-      <div id="status-display">
+      <div id="status-display" class="share-status-display">
         <span class="status-pill status-idle" id="conn-status">
           <span class="dot"></span> Menghubungkan...
         </span>
@@ -103,7 +103,7 @@
 
     <!-- Mode Kirim -->
     <div id="panel-send">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+      <div class="share-panel-grid">
         <div style="display:flex;flex-direction:column;gap:16px">
           <div class="card">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
@@ -168,7 +168,7 @@
 
     <!-- Mode Terima -->
     <div id="panel-receive" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+      <div class="share-panel-grid">
         <div class="card">
           <h3 class="section-title">Masukkan Kode Pengirim</h3>
           <div class="divider"></div>
@@ -211,7 +211,7 @@
     <div class="card" style="margin-top:20px">
       <h3 class="section-title">Cara Kerja</h3>
       <div class="divider"></div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:4px">
+      <div class="cara-kerja-grid">
         <div style="text-align:center;padding:12px 8px">
           <div style="font-size:32px;margin-bottom:10px">📤</div>
           <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">1. Pengirim unggah</p>
