@@ -298,6 +298,7 @@
       });
 
       myPeer.on("connection", (conn) => {
+        // Pastikan serialization binary untuk transfer ArrayBuffer
         activeConn = conn;
         setSendStatus("connected", "Terhubung ke penerima");
         setConnStatus("connected", "Tersambung");
@@ -372,31 +373,46 @@
       }
       const file = queuedFile, CHUNK = 64 * 1024, total = file.size;
       let sent = 0;
+      // Kirim metadata dulu
       activeConn.send({ type: "meta", name: sanitizeString(file.name, 100), size: total, mime: file.type });
       const tid = "send_" + Date.now();
       addTransferItem("send", tid, file.name, total);
       document.getElementById("send-empty").style.display = "none";
       document.getElementById("btn-send-file").disabled = true;
+
       const reader = new FileReader();
       let offset = 0;
-      function readChunk() { reader.readAsArrayBuffer(file.slice(offset, offset + CHUNK)); }
+
+      function readChunk() {
+        reader.readAsArrayBuffer(file.slice(offset, offset + CHUNK));
+      }
+
       reader.onload = (e) => {
-        activeConn.send(e.target.result);
-        sent += e.target.result.byteLength;
-        offset += CHUNK;
+        const chunk = e.target.result;
+        activeConn.send(chunk);
+        sent   += chunk.byteLength;
+        offset += chunk.byteLength; // pakai byteLength bukan CHUNK (chunk terakhir bisa lebih kecil)
         updateTransferProgress(tid, Math.min(100, Math.round((sent / total) * 100)));
-        if (offset < total) { setTimeout(readChunk, 0); }
-        else {
-          activeConn.send({ type: "done" });
-          finalizeTransferItem(tid, true);
-          showToast("File berhasil dikirim ✓");
-          document.getElementById("btn-send-file").disabled = false;
-          queuedFile = null;
-          document.getElementById("send-input").value = "";
-          document.getElementById("send-file-info").style.display = "none";
+
+        if (offset < total) {
+          // Delay kecil agar buffer tidak penuh (flow control sederhana)
+          setTimeout(readChunk, 10);
+        } else {
+          // Tunggu sebentar lalu kirim sinyal selesai
+          setTimeout(() => {
+            activeConn.send({ type: "done" });
+            finalizeTransferItem(tid, true);
+            showToast("File berhasil dikirim ✓");
+            document.getElementById("btn-send-file").disabled = false;
+            queuedFile = null;
+            document.getElementById("send-input").value = "";
+            document.getElementById("send-file-info").style.display = "none";
+          }, 100);
         }
       };
-      readChunk();
+
+      // Mulai kirim setelah delay kecil agar meta sudah diterima dulu
+      setTimeout(readChunk, 150);
     }
 
     /** Hubungkan ke pengirim sebagai penerima. */
@@ -428,25 +444,52 @@
     }
 
     function handleReceiveData(data) {
-      if (data && data.type === "meta") {
-        receiveMeta = { name: sanitizeString(data.name || "file", 100), size: data.size || 0, mime: data.mime || "application/octet-stream" };
-        receiveBuffer = []; receivedSize = 0;
-        receiveTransferId = "recv_" + Date.now();
-        addTransferItem("receive", receiveTransferId, receiveMeta.name, receiveMeta.size);
-        document.getElementById("receive-empty").style.display = "none";
-        return;
-      }
-      if (data && data.type === "done") {
-        const blob = new Blob(receiveBuffer, { type: receiveMeta?.mime || "application/octet-stream" });
-        finalizeTransferItem(receiveTransferId, true, blob, receiveMeta?.name || "file");
-        receiveBuffer = []; receiveMeta = null; receivedSize = 0;
-        showToast("File diterima! Klik Unduh ✓");
-        return;
-      }
+      // Data berupa object (meta/done) atau ArrayBuffer (chunk)
+      // PeerJS binary mode: object dikirim sebagai JSON, binary sebagai ArrayBuffer
+
+      // Cek apakah data adalah ArrayBuffer murni
       if (data instanceof ArrayBuffer) {
         receiveBuffer.push(data);
         receivedSize += data.byteLength;
         if (receiveMeta) updateTransferProgress(receiveTransferId, Math.min(100, Math.round((receivedSize / receiveMeta.size) * 100)));
+        return;
+      }
+
+      // Cek apakah data adalah Uint8Array atau BufferSource lain (fallback PeerJS)
+      if (data instanceof Uint8Array || ArrayBuffer.isView(data)) {
+        const buf = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+        receiveBuffer.push(buf);
+        receivedSize += buf.byteLength;
+        if (receiveMeta) updateTransferProgress(receiveTransferId, Math.min(100, Math.round((receivedSize / receiveMeta.size) * 100)));
+        return;
+      }
+
+      // Data adalah object (meta atau done)
+      if (data && typeof data === "object") {
+        if (data.type === "meta") {
+          receiveMeta = {
+            name: sanitizeString(data.name || "file", 100),
+            size: data.size || 0,
+            mime: data.mime || "application/octet-stream"
+          };
+          receiveBuffer = []; receivedSize = 0;
+          receiveTransferId = "recv_" + Date.now();
+          addTransferItem("receive", receiveTransferId, receiveMeta.name, receiveMeta.size);
+          document.getElementById("receive-empty").style.display = "none";
+          return;
+        }
+
+        if (data.type === "done") {
+          if (!receiveMeta || receiveBuffer.length === 0) {
+            showToast("Transfer gagal — tidak ada data diterima", "error");
+            return;
+          }
+          const blob = new Blob(receiveBuffer, { type: receiveMeta.mime || "application/octet-stream" });
+          finalizeTransferItem(receiveTransferId, true, blob, receiveMeta.name || "file");
+          receiveBuffer = []; receiveMeta = null; receivedSize = 0;
+          showToast("File diterima! Klik Unduh ✓");
+          return;
+        }
       }
     }
 
@@ -560,4 +603,4 @@
     initPeer();
   </script>
 </body>
-</html>
+  </html>
