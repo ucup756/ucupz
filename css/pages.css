@@ -927,24 +927,212 @@
   margin-bottom: 12px;
 }
 .mt-action { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ============================================================
+   LAYOUT CLASSES — Share & Profil
+============================================================ */
+
+/* Share panel grid (desktop: 2 kolom, mobile: 1 kolom) */
+.share-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Cara kerja grid (desktop: 3 kolom, mobile: 1 kolom) */
+.cara-kerja-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 4px;
+}
+
+/* Profil head row */
+.profil-head-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+/* Share page header — status pill di kanan */
+.share-page-header {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.share-status-display {
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   MOBILE — max 768px
+============================================================ */
 @media (max-width: 768px) {
-  /* Grid 2 kolom di profil jadi 1 kolom */
+
+  /* Skeleton offset */
+  #page-skeleton {
+    margin-left: 0 !important;
+    padding: 20px 16px !important;
+  }
+
+  /* Main content full width */
+  .main-content,
+  #main-app-content {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* ── PROFIL ── */
+
+  /* Cover lebih pendek */
+  .profile-cover { height: 110px; }
+
+  /* Avatar lebih kecil */
+  .avatar-ring {
+    width: 68px;
+    height: 68px;
+  }
+  .avatar-online {
+    width: 13px;
+    height: 13px;
+    bottom: 2px;
+    right: 2px;
+  }
+
+  /* Avatar section */
+  .avatar-section {
+    margin-top: -30px;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 14px;
+  }
+
+  /* Nama profil lebih kecil */
+  .profile-headline h2 { font-size: 16px; }
+  .profile-headline p  { font-size: 12px; }
+
+  /* Stats 3 kolom — kecilkan font */
+  .stat-val  { font-size: 15px; }
+  .stat-lbl  { font-size: 10px; }
+  .stat-cell { padding: 10px 6px; }
+
+  /* Tab profil scroll horizontal */
+  .profile-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0;
+  }
+  .profile-tabs::-webkit-scrollbar { display: none; }
+  .ptab {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 12.5px;
+    padding: 10px 14px;
+  }
+
+  /* Grid 2 kolom → 1 kolom */
   .two-col-grid,
-  [style*="grid-template-columns: 1fr 1fr"] {
+  .field-row {
     grid-template-columns: 1fr !important;
   }
 
-  /* Stats row 3 kolom tetap tapi teks lebih kecil */
-  .stat-val { font-size: 16px; }
-  .stat-lbl { font-size: 10px; }
-
-  /* Pastikan semua card tidak overflow */
-  .card {
-    overflow: hidden;
+  /* Profil head row vertikal */
+  .profil-head-row {
+    flex-direction: row;
+    align-items: center;
   }
 
-  /* Avatar section di mobile */
-  .avatar-section {
-    margin-top: -36px;
+  /* Card tidak overflow */
+  .card { overflow: hidden; }
+
+  /* ── SHARE ── */
+
+  /* Page header share — status pill pindah bawah judul */
+  .share-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
   }
+
+  /* Panel grid → 1 kolom */
+  .share-panel-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Cara kerja → 1 kolom */
+  .cara-kerja-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Cara kerja item horizontal */
+  .cara-kerja-grid > div {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-align: left !important;
+    padding: 12px !important;
+    background: var(--bg3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  .cara-kerja-grid > div > div:first-child {
+    font-size: 28px !important;
+    margin-bottom: 0 !important;
+    flex-shrink: 0;
+  }
+
+  /* Kode berbagi lebih besar agar mudah dibaca */
+  .peer-id-code {
+    font-size: 28px;
+    letter-spacing: 0.18em;
+  }
+
+  /* Input kode terima */
+  .code-input { font-size: 22px; }
+
+  /* Peer ID box padding */
+  .peer-id-box { padding: 12px; }
+
+  /* Mode toggle */
+  .share-mode-toggle { margin-bottom: 16px; }
+  .mode-btn { font-size: 13px; }
+
+  /* Tombol bagikan via WA & salin tautan */
+  .feature-row { margin-top: 12px; }
+
+  /* Card min-height reset */
+  .card { min-height: unset !important; }
+
+  /* Status pill di share */
+  .status-pill { font-size: 11px; padding: 4px 10px; }
+
+  /* Transfer item */
+  .transfer-name { font-size: 12px; }
 }
+
+/* ============================================================
+   DESKTOP — min 769px
+============================================================ */
+@media (min-width: 769px) {
+
+  /* Share: pastikan grid 2 kolom */
+  .share-panel-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  /* Cara kerja: 3 kolom */
+  .cara-kerja-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Profil: two-col-grid 2 kolom */
+  .two-col-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+               }
