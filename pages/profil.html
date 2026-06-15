@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profil — UcupzConvert</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
@@ -271,7 +271,7 @@
     <!-- Tab: Info Profil -->
     <div class="tab-pane active" id="pane-info">
       <div class="card">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+        <div class="profil-head-row">
           <img id="info-pic" src="" alt="" class="info-pic-sm" />
           <div>
             <p class="info-name-lg" id="info-name">—</p>
@@ -283,7 +283,7 @@
           <p class="bio-label">Bio</p>
           <p id="info-bio" class="bio-text"></p>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="two-col-grid">
           <div class="account-item account-item-flush">
             <div class="ai-icon">📍</div>
             <div class="ai-body">
@@ -558,4 +558,4 @@
     loadProfile();
   </script>
 </body>
-</html>
+      </html>
