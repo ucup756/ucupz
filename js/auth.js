@@ -242,7 +242,8 @@ function requireLogin() {
   }
 
   startSessionWatcher();
-  fillSidebarUser(user);
+  // fillSidebarUser dipanggil SETELAH renderSidebar() di tiap halaman
+  // agar elemen DOM sudah ada saat diisi
   return user;
 }
 
