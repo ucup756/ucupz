@@ -72,6 +72,10 @@ function renderSidebar(activePage) {
       </div>
     </div>
   `;
+
+  // Isi data user setelah elemen sidebar ada di DOM
+  const _u = getUser();
+  if (_u) fillSidebarUser(_u);
 }
 
 // ── Toast notification ────────────────────────────────────
