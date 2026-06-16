@@ -267,10 +267,33 @@
 
       myPeer = new Peer(id, {
         host: "0.peerjs.com", port: 443, secure: true, path: "/",
-        config: { iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-        ]}
+        config: {
+          iceServers: [
+            // STUN servers — bantu temukan IP publik
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun.cloudflare.com:3478" },
+            // TURN servers — relay data kalau P2P langsung gagal
+            // (pakai server gratis dari Open Relay Project)
+            {
+              urls: "turn:openrelay.metered.ca:80",
+              username: "openrelayproject",
+              credential: "openrelayproject"
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443",
+              username: "openrelayproject",
+              credential: "openrelayproject"
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443?transport=tcp",
+              username: "openrelayproject",
+              credential: "openrelayproject"
+            },
+          ],
+          iceCandidatePoolSize: 10,
+        }
       });
 
       myPeer.on("open", (id) => {
@@ -429,6 +452,25 @@
         setConnStatus("connected", "Tersambung");
         showToast("✓ Terhubung! Menunggu file dari pengirim...");
         conn.send({ type: "ack" });
+
+        // Deteksi apakah koneksi P2P langsung atau lewat relay TURN
+        if (conn.peerConnection) {
+          conn.peerConnection.getStats().then(stats => {
+            stats.forEach(report => {
+              if (report.type === "candidate-pair" && report.state === "succeeded") {
+                const isRelay = report.localCandidateId &&
+                  [...stats.values()].some(s =>
+                    s.id === report.localCandidateId && s.candidateType === "relay"
+                  );
+                if (isRelay) {
+                  setReceiveStatus("connected", "Terhubung via relay (beda jaringan)");
+                } else {
+                  setReceiveStatus("connected", "Terhubung langsung (P2P)");
+                }
+              }
+            });
+          }).catch(() => {});
+        }
       });
       conn.on("data", handleReceiveData);
       conn.on("close", () => {
