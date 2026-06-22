@@ -1138,3 +1138,140 @@
     grid-template-columns: 1fr 1fr;
   }
    }
+/* ============================================================
+   SEARCH BAR — Tool Converter
+   Tambahkan ke css/pages.css (tempel di bagian bawah)
+============================================================ */
+
+/* ---- Search wrap ---- */
+.tool-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.tool-search-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 15px;
+  pointer-events: none;
+  z-index: 1;
+  line-height: 1;
+}
+
+.tool-search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 11px 40px 11px 40px;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+}
+.tool-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  background: var(--bg2);
+}
+.tool-search-input::placeholder {
+  color: var(--text3);
+  font-size: 13px;
+}
+
+/* Hapus tampilan bawaan browser untuk search input */
+.tool-search-input::-webkit-search-cancel-button { display: none; }
+
+/* ---- Clear button ---- */
+.tool-search-clear {
+  position: absolute;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface2);
+  color: var(--text3);
+  font-size: 11px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition);
+  line-height: 1;
+}
+.tool-search-clear:hover {
+  background: var(--border2);
+  color: var(--text);
+}
+
+/* ---- Hint shortcut keyboard ---- */
+.tool-search-input:not(:focus)::after {
+  content: '/';
+}
+.tool-search-shortcut {
+  position: absolute;
+  right: 12px;
+  font-size: 11px;
+  color: var(--text3);
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+
+/* ---- Empty state pencarian ---- */
+.search-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 24px;
+  animation: pageFadeIn 0.2s ease;
+}
+.search-empty-icon {
+  font-size: 44px;
+  margin-bottom: 14px;
+  opacity: 0.6;
+}
+.search-empty-title {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.search-empty-desc {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.search-empty-desc em {
+  font-style: normal;
+  color: var(--accent2);
+  background: rgba(124,106,255,0.10);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* ---- Highlight match (opsional, dipakai kalau mau highlight teks) ---- */
+.tool-card mark {
+  background: rgba(124,106,255,0.25);
+  color: var(--accent2);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .tool-search-input {
+    font-size: 16px; /* Cegah zoom otomatis iOS */
+    padding: 10px 38px 10px 38px;
+  }
+  .tool-search-icon { font-size: 14px; }
+   }
