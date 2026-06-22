@@ -331,7 +331,185 @@ function filterCat(cat, btn) {
     g.style.display = (cat === "all" || g.dataset.cat === cat) ? "" : "none";
   });
 }
+// ════════════════════════════════════════════════════════════
+// SEARCH / FILTER TOOLS
+// Tambahkan bagian ini ke js/pages/converter.js,
+// letakkan setelah fungsi filterCat() dan sebelum openTool()
+// ════════════════════════════════════════════════════════════
 
+/** @type {string} Kata kunci pencarian aktif */
+let searchQuery = "";
+
+/** @type {ReturnType<typeof setTimeout>|null} */
+let _searchTimer = null;
+
+/**
+ * Jalankan pencarian tool dengan debounce 200ms.
+ * Dipanggil dari oninput search bar di HTML.
+ * @param {string} raw - Nilai input mentah
+ */
+function searchTools(raw) {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => _applySearch(raw), 200);
+}
+
+/**
+ * Terapkan pencarian + filter kategori aktif ke semua tool card.
+ * @param {string} raw
+ */
+function _applySearch(raw) {
+  searchQuery = raw.trim().toLowerCase();
+
+  // Tampilkan/sembunyikan tombol clear
+  const clearBtn = document.getElementById("tool-search-clear");
+  if (clearBtn) clearBtn.style.display = searchQuery ? "flex" : "none";
+
+  // Ambil filter kategori aktif
+  const activeTab = document.querySelector(".cat-tab.active");
+  const activeCat = activeTab ? activeTab.getAttribute("data-cat") || "all" : "all";
+
+  const allCards    = document.querySelectorAll(".tool-card");
+  const catLabels   = document.querySelectorAll(".grid-cat-label");
+  const catGrids    = document.querySelectorAll(".tool-grid[data-cat]");
+  let totalVisible  = 0;
+
+  // Filter tiap card
+  allCards.forEach(card => {
+    const title = (card.dataset.title || "").toLowerCase();
+    const desc  = (card.dataset.desc  || "").toLowerCase();
+    const tags  = (card.dataset.tags  || "").toLowerCase();
+    const cat   = card.closest(".tool-grid")?.dataset.cat || "";
+
+    const matchSearch = !searchQuery ||
+      title.includes(searchQuery) ||
+      desc.includes(searchQuery)  ||
+      tags.includes(searchQuery);
+
+    const matchCat = activeCat === "all" || cat === activeCat;
+
+    const visible = matchSearch && matchCat;
+    card.style.display = visible ? "" : "none";
+    if (visible) totalVisible++;
+  });
+
+  // Sembunyikan label kategori kalau semua card-nya hidden
+  catGrids.forEach(grid => {
+    const cat        = grid.dataset.cat;
+    const anyVisible = [...grid.querySelectorAll(".tool-card")]
+      .some(c => c.style.display !== "none");
+
+    grid.style.display = anyVisible ? "" : "none";
+
+    // Label di atas grid
+    const label = document.querySelector(`.grid-cat-label[data-cat="${cat}"]`);
+    if (label) label.style.display = anyVisible ? "" : "none";
+  });
+
+  // Sembunyikan cat-tabs saat sedang search aktif
+  const catTabsBar = document.getElementById("cat-tabs-bar");
+  if (catTabsBar) catTabsBar.style.display = searchQuery ? "none" : "";
+
+  // Tampilkan empty state kalau tidak ada hasil
+  const emptyState = document.getElementById("search-empty-state");
+  if (emptyState) emptyState.style.display = (totalVisible === 0 && searchQuery) ? "flex" : "none";
+}
+
+/**
+ * Bersihkan search dan kembalikan tampilan ke kondisi awal.
+ */
+function clearSearch() {
+  const input = document.getElementById("tool-search-input");
+  if (input) input.value = "";
+  searchQuery = "";
+
+  // Sembunyikan clear button
+  const clearBtn = document.getElementById("tool-search-clear");
+  if (clearBtn) clearBtn.style.display = "none";
+
+  // Tampilkan ulang cat-tabs
+  const catTabsBar = document.getElementById("cat-tabs-bar");
+  if (catTabsBar) catTabsBar.style.display = "";
+
+  // Reset semua card dan label ke kondisi filterCat aktif
+  const activeTab = document.querySelector(".cat-tab.active");
+  const activeCat = activeTab ? activeTab.getAttribute("data-cat") || "all" : "all";
+
+  document.querySelectorAll(".tool-card").forEach(c => c.style.display = "");
+  document.querySelectorAll(".grid-cat-label").forEach(l => {
+    l.style.display = (activeCat === "all" || l.dataset.cat === activeCat) ? "" : "none";
+  });
+  document.querySelectorAll(".tool-grid[data-cat]").forEach(g => {
+    g.style.display = (activeCat === "all" || g.dataset.cat === activeCat) ? "" : "none";
+  });
+
+  // Sembunyikan empty state
+  const emptyState = document.getElementById("search-empty-state");
+  if (emptyState) emptyState.style.display = "none";
+
+  // Fokus kembali ke search bar
+  const input2 = document.getElementById("tool-search-input");
+  if (input2) input2.focus();
+}
+
+// ── Patch filterCat agar kompatibel dengan search aktif ──
+// Simpan referensi filterCat asli lalu wrap
+const _filterCatOriginal = filterCat;
+// Override filterCat agar set data-cat di tombol aktif
+function filterCat(cat, btn) {
+  document.querySelectorAll(".cat-tab").forEach(b => {
+    b.classList.remove("active");
+    b.removeAttribute("data-cat");
+  });
+  btn.classList.add("active");
+  btn.setAttribute("data-cat", cat);
+
+  // Kalau ada search aktif, re-apply search dengan filter baru
+  if (searchQuery) {
+    _applySearch(searchQuery);
+    return;
+  }
+
+  // Tidak ada search — pakai logika lama
+  document.querySelectorAll(".grid-cat-label").forEach(l => {
+    l.style.display = (cat === "all" || l.dataset.cat === cat) ? "" : "none";
+  });
+  document.querySelectorAll(".tool-grid[data-cat]").forEach(g => {
+    g.style.display = (cat === "all" || g.dataset.cat === cat) ? "" : "none";
+  });
+
+  // Pastikan semua card visible (clear search state)
+  document.querySelectorAll(".tool-card").forEach(c => c.style.display = "");
+}
+
+// ── Set data-cat awal di tombol "Semua" saat halaman load ──
+document.addEventListener("DOMContentLoaded", () => {
+  const firstTab = document.querySelector(".cat-tab.active");
+  if (firstTab && !firstTab.getAttribute("data-cat")) {
+    firstTab.setAttribute("data-cat", "all");
+  }
+});
+
+// ── Shortcut keyboard: tekan "/" untuk fokus ke search ───
+document.addEventListener("keydown", (e) => {
+  // Jangan trigger kalau sedang di dalam input/textarea
+  if (e.key === "/" && !["INPUT","TEXTAREA"].includes(document.activeElement.tagName)) {
+    const input = document.getElementById("tool-search-input");
+    const panel = document.getElementById("tool-panel");
+    // Hanya aktif kalau panel tool tidak sedang terbuka
+    if (input && panel && !panel.classList.contains("show")) {
+      e.preventDefault();
+      input.focus();
+      input.select();
+    }
+  }
+  // Escape untuk clear search
+  if (e.key === "Escape") {
+    const input = document.getElementById("tool-search-input");
+    if (input && document.activeElement === input && searchQuery) {
+      clearSearch();
+    }
+  }
+});
 /**
  * Buka panel tool tertentu.
  * @param {string} id - ID tool dari objek TOOLS
