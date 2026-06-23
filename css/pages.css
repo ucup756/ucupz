@@ -1275,3 +1275,318 @@
   }
   .tool-search-icon { font-size: 14px; }
    }
+/* ============================================================
+   UX PHASE 2 — Animasi, drag & drop, dashboard
+   Tempel di bagian paling bawah css/pages.css
+============================================================ */
+
+/* ============================================================
+   #7 — ANIMASI TRANSISI LEBIH HALUS
+============================================================ */
+
+/* Page transition: slide + fade */
+.page-fade-in {
+  animation: pageSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Tool card hover glow */
+.tool-card {
+  transition: border-color var(--transition), background var(--transition),
+              transform var(--transition), box-shadow var(--transition) !important;
+}
+.tool-card:hover {
+  box-shadow: 0 4px 24px rgba(124,106,255,0.12), 0 0 0 1px rgba(124,106,255,0.2) !important;
+}
+.tool-card.active {
+  box-shadow: 0 4px 24px rgba(124,106,255,0.18), 0 0 0 1px rgba(124,106,255,0.35) !important;
+}
+
+/* Panel tool open animation */
+#tool-panel.show {
+  animation: panelSlideDown 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes panelSlideDown {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Result box bounce-in */
+.result-box.show {
+  animation: resultBounceIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+}
+@keyframes resultBounceIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Progress fill smooth */
+.progress-fill {
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* File item slide-in */
+.file-item {
+  animation: fileItemIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes fileItemIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Cat tab active underline slide */
+.cat-tab {
+  position: relative;
+  overflow: hidden;
+}
+.cat-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  width: 0; height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.22s ease, left 0.22s ease;
+  transform: translateX(-50%);
+}
+.cat-tab.active::after {
+  width: 60%;
+}
+
+/* ============================================================
+   #8 — VISUAL FEEDBACK DRAG & DROP
+============================================================ */
+
+/* Zone default */
+.upload-zone {
+  transition:
+    border-color var(--transition),
+    background var(--transition),
+    box-shadow var(--transition),
+    transform var(--transition) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Saat hover biasa */
+.upload-zone:hover {
+  border-color: var(--accent);
+  background: rgba(124,106,255,0.04);
+}
+
+/* Saat file di-drag masuk — class ditambah via JS */
+.upload-zone.drag-over {
+  border-color: var(--accent) !important;
+  background: rgba(124,106,255,0.08) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow), inset 0 0 40px rgba(124,106,255,0.06) !important;
+  transform: scale(1.01) !important;
+  animation: dragPulse 1.2s ease-in-out infinite !important;
+}
+@keyframes dragPulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--accent-glow), inset 0 0 40px rgba(124,106,255,0.06); }
+  50%       { box-shadow: 0 0 0 6px rgba(124,106,255,0.12), inset 0 0 40px rgba(124,106,255,0.10); }
+}
+
+/* Teks berubah saat drag-over */
+.upload-zone.drag-over .upload-label::before {
+  content: "Lepaskan file di sini ";
+}
+.upload-zone.drag-over .upload-label {
+  color: var(--accent2);
+}
+.upload-zone.drag-over .upload-icon {
+  animation: iconBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes iconBounce {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.3) rotate(-8deg); }
+  100% { transform: scale(1.1); }
+}
+
+/* Saat file invalid — class ditambah via JS */
+.upload-zone.drag-invalid {
+  border-color: var(--danger) !important;
+  background: rgba(255,107,107,0.06) !important;
+  animation: shakeZone 0.4s ease !important;
+}
+@keyframes shakeZone {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+/* Pesan error inline drag */
+.drag-error-msg {
+  position: absolute;
+  bottom: 10px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,107,107,0.15);
+  border: 1px solid rgba(255,107,107,0.3);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  color: var(--danger);
+  white-space: nowrap;
+  animation: fadeUpMsg 0.2s ease both;
+  pointer-events: none;
+}
+@keyframes fadeUpMsg {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Drop success flash */
+.upload-zone.drop-success {
+  border-color: var(--success) !important;
+  background: rgba(0,212,168,0.06) !important;
+  animation: successFlash 0.5s ease both;
+}
+@keyframes successFlash {
+  0%   { box-shadow: 0 0 0 0 rgba(0,212,168,0.4); }
+  50%  { box-shadow: 0 0 0 8px rgba(0,212,168,0.0); border-color: var(--success); }
+  100% { box-shadow: none; }
+}
+
+/* ============================================================
+   #5 — DASHBOARD PROFIL
+============================================================ */
+
+/* Greeting bar */
+.profile-greeting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(124,106,255,0.08) 0%, rgba(255,106,176,0.06) 100%);
+  border: 1px solid rgba(124,106,255,0.15);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  animation: pageSlideIn 0.35s ease both;
+}
+.profile-greeting-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.profile-greeting-text h3 {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.profile-greeting-text p {
+  font-size: 12.5px;
+  color: var(--text2);
+}
+
+/* Aktivitas section */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition), background var(--transition);
+  animation: fileItemIn 0.22s ease both;
+}
+.activity-item:hover {
+  border-color: var(--border2);
+  background: var(--surface);
+}
+.activity-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+}
+.activity-body {
+  flex: 1;
+  min-width: 0;
+}
+.activity-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.activity-time {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 1px;
+}
+.activity-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent2);
+  background: rgba(124,106,255,0.10);
+  border: 1px solid rgba(124,106,255,0.18);
+  border-radius: 20px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+}
+
+/* Stat card update */
+.stat-cell {
+  transition: background var(--transition);
+}
+.stat-cell:hover {
+  background: var(--surface2) !important;
+}
+
+/* Tool favorit chip */
+.fav-tool-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(124,106,255,0.10);
+  border: 1px solid rgba(124,106,255,0.20);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--accent2);
+  margin-top: 6px;
+}
+
+/* Empty activity state */
+.activity-empty {
+  text-align: center;
+  padding: 28px 0;
+  color: var(--text3);
+  font-size: 13px;
+}
+.activity-empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* ============================================================
+   RESPONSIVE PATCH
+============================================================ */
+@media (max-width: 768px) {
+  .profile-greeting { padding: 12px 14px; gap: 10px; }
+  .profile-greeting-icon { font-size: 22px; }
+  .profile-greeting-text h3 { font-size: 14px; }
+  .upload-zone.drag-over { transform: none !important; }
+   }
