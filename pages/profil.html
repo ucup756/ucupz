@@ -7,231 +7,25 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/pages.css" />
-  <style>
-    .profile-cover {
-      width: 100%;
-      height: 160px;
-      background: linear-gradient(135deg, var(--accent) 0%, #ff6ab0 50%, var(--teal) 100%);
-      border-radius: var(--radius);
-      position: relative;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .profile-cover::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 80% at 20% 50%, rgba(255,255,255,0.10) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 60% at 80% 30%, rgba(255,255,255,0.07) 0%, transparent 60%);
-    }
-    .cover-pattern {
-      position: absolute;
-      inset: 0;
-      opacity: 0.06;
-      background-image: repeating-linear-gradient(
-        45deg,
-        #fff 0px, #fff 1px,
-        transparent 1px, transparent 24px
-      );
-    }
-    .avatar-section {
-      display: flex;
-      align-items: flex-end;
-      gap: 20px;
-      padding: 0 4px;
-      margin-top: 0;
-      margin-bottom: 16px;
-      position: relative;
-      z-index: 1;
-    }
-    .avatar-ring {
-      width: 96px; height: 96px;
-      border-radius: 50%;
-      border: 4px solid var(--bg2);
-      background: var(--bg3);
-      flex-shrink: 0;
-      position: relative;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      margin-top: -48px; /* hanya avatar ring yang naik ke atas cover */
-    }
-    .avatar-ring img {
-      width: 100%; height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-      display: block;
-    }
-    .avatar-online {
-      position: absolute;
-      bottom: 4px; right: 4px;
-      width: 16px; height: 16px;
-      border-radius: 50%;
-      background: var(--success);
-      border: 3px solid var(--bg2);
-    }
-    .profile-headline {
-      padding-bottom: 6px;
-      flex: 1;
-      min-width: 0;
-    }
-    .profile-headline h2 {
-      font-family: var(--font-head);
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 2px;
-    }
-    .profile-headline p {
-      font-size: 13px;
-      color: var(--text2);
-    }
-    .profile-headline .meta-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-    .meta-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11.5px;
-      color: var(--text2);
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 3px 10px;
-    }
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
-      background: var(--border);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-    .stat-cell {
-      background: var(--surface);
-      padding: 16px 12px;
-      text-align: center;
-    }
-    .stat-val  { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--text); line-height: 1.1; }
-    .stat-lbl  { font-size: 11px; color: var(--text3); margin-top: 3px; }
-    .profile-tabs {
-      display: flex;
-      gap: 2px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
-    }
-    .ptab {
-      padding: 10px 18px;
-      font-size: 13.5px;
-      font-weight: 500;
-      color: var(--text2);
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      cursor: pointer;
-      transition: all var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .ptab:hover  { color: var(--text); }
-    .ptab.active { color: var(--accent2); border-bottom-color: var(--accent); }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-    .form-section-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      margin-bottom: 14px;
-    }
-    .field-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-    .field-full { grid-column: 1 / -1; }
-    .account-list { display: flex; flex-direction: column; }
-    .account-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .account-item:last-child { border: none; }
-    .ai-icon {
-      width: 38px; height: 38px;
-      border-radius: var(--radius-sm);
-      background: var(--bg3);
-      border: 1px solid var(--border2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-    .ai-body  { flex: 1; min-width: 0; }
-    .ai-label { font-size: 12px; color: var(--text3); }
-    .ai-value { font-size: 13.5px; font-weight: 500; color: var(--text); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .danger-zone {
-      border: 1px solid rgba(255,107,107,0.2);
-      border-radius: var(--radius);
-      padding: 20px 22px;
-    }
-    .danger-zone-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--danger);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .danger-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(255,107,107,0.1);
-    }
-    .danger-item:last-child { border: none; padding-bottom: 0; }
-    .danger-item-info p    { font-size: 13px; font-weight: 500; color: var(--text); }
-    .danger-item-info span { font-size: 11.5px; color: var(--text3); }
-    @media (max-width: 768px) {
-      .field-row { grid-template-columns: 1fr; }
-      .profile-headline h2 { font-size: 18px; }
-      .profile-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .ptab { white-space: nowrap; font-size: 12.5px; padding: 9px 14px; }
-      .avatar-section { flex-direction: column; align-items: flex-start; }
-    }
-  </style>
 </head>
 <body class="app-page">
   <aside class="sidebar" id="sidebar"></aside>
 
-  <!-- Skeleton loading — tampil sebelum JS berjalan -->
   <div id="page-skeleton" style="margin-left:var(--sidebar-w);padding:36px 40px" aria-hidden="true">
     <div class="skeleton" style="width:180px;height:28px;border-radius:8px;margin-bottom:8px"></div>
     <div class="skeleton" style="width:300px;height:14px;border-radius:6px;margin-bottom:32px"></div>
-      <div class="skeleton skeleton-card" style="height:120px;border-radius:var(--radius);margin-bottom:12px"></div>
-      <div class="skeleton skeleton-card" style="height:120px;border-radius:var(--radius);margin-bottom:12px"></div>
+    <div class="skeleton skeleton-card" style="height:120px;border-radius:var(--radius);margin-bottom:12px"></div>
+    <div class="skeleton skeleton-card" style="height:120px;border-radius:var(--radius);margin-bottom:12px"></div>
   </div>
 
   <main class="main-content" id="main-app-content" style="display:none">
+
+    <!-- Cover -->
     <div class="profile-cover">
       <div class="cover-pattern"></div>
     </div>
 
+    <!-- Avatar + headline -->
     <div class="avatar-section">
       <div class="avatar-ring">
         <img id="profile-pic" src="" alt="Avatar pengguna" />
@@ -248,14 +42,15 @@
       </div>
     </div>
 
+    <!-- Stats -->
     <div class="stats-row">
       <div class="stat-cell">
         <div class="stat-val" id="stat-login">—</div>
         <div class="stat-lbl">Hari bergabung</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-val" id="stat-tools">25</div>
-        <div class="stat-lbl">Tools tersedia</div>
+        <div class="stat-val" id="stat-processed">0</div>
+        <div class="stat-lbl">File diproses</div>
       </div>
       <div class="stat-cell">
         <div class="stat-val">🟢</div>
@@ -263,6 +58,7 @@
       </div>
     </div>
 
+    <!-- Tabs -->
     <div class="profile-tabs">
       <button class="ptab active" onclick="switchTab('info', this)">👤 Info Profil</button>
       <button class="ptab" onclick="switchTab('edit', this)">✏️ Ubah Profil</button>
@@ -271,7 +67,17 @@
 
     <!-- Tab: Info Profil -->
     <div class="tab-pane active" id="pane-info">
-      <div class="card">
+
+      <!-- Greeting dinamis -->
+      <div class="profile-greeting" id="profile-greeting">
+        <div class="profile-greeting-icon" id="greeting-icon">👋</div>
+        <div class="profile-greeting-text">
+          <h3 id="greeting-text">Selamat datang!</h3>
+          <p id="greeting-sub">Semua tools siap digunakan — apa yang ingin kamu konversi hari ini?</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
         <div class="profil-head-row">
           <img id="info-pic" src="" alt="" class="info-pic-sm" />
           <div>
@@ -314,11 +120,28 @@
             </div>
           </div>
         </div>
+
+        <!-- Tool favorit -->
+        <div id="fav-tool-wrap" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <p class="ai-label">Tool paling sering dipakai</p>
+          <div class="fav-tool-chip" id="fav-tool-chip">—</div>
+        </div>
+
         <div style="margin-top:16px;text-align:right">
           <button class="btn btn-secondary" style="font-size:12.5px" onclick="switchTab('edit', document.querySelectorAll('.ptab')[1])">
             ✏️ Ubah Profil
           </button>
         </div>
+      </div>
+
+      <!-- Aktivitas terakhir -->
+      <div class="card">
+        <div class="section-header">
+          <h3 class="section-title">Aktivitas Terakhir</h3>
+          <button class="btn btn-secondary" onclick="clearActivity()" style="font-size:11px;padding:4px 10px">Hapus</button>
+        </div>
+        <div class="divider"></div>
+        <div id="activity-list-wrap"></div>
       </div>
     </div>
 
@@ -375,38 +198,23 @@
         <div class="account-list">
           <div class="account-item">
             <div class="ai-icon">🪪</div>
-            <div class="ai-body">
-              <p class="ai-label">Nama lengkap</p>
-              <p class="ai-value" id="acc-name">—</p>
-            </div>
+            <div class="ai-body"><p class="ai-label">Nama lengkap</p><p class="ai-value" id="acc-name">—</p></div>
           </div>
           <div class="account-item">
             <div class="ai-icon">📧</div>
-            <div class="ai-body">
-              <p class="ai-label">Surel Google</p>
-              <p class="ai-value" id="acc-email">—</p>
-            </div>
+            <div class="ai-body"><p class="ai-label">Surel Google</p><p class="ai-value" id="acc-email">—</p></div>
           </div>
           <div class="account-item">
             <div class="ai-icon">🕐</div>
-            <div class="ai-body">
-              <p class="ai-label">Login terakhir</p>
-              <p class="ai-value" id="acc-lastlogin">—</p>
-            </div>
+            <div class="ai-body"><p class="ai-label">Login terakhir</p><p class="ai-value" id="acc-lastlogin">—</p></div>
           </div>
           <div class="account-item">
             <div class="ai-icon">✅</div>
-            <div class="ai-body">
-              <p class="ai-label">Status</p>
-              <p class="ai-value"><span class="badge badge-success">Aktif</span></p>
-            </div>
+            <div class="ai-body"><p class="ai-label">Status</p><p class="ai-value"><span class="badge badge-success">Aktif</span></p></div>
           </div>
           <div class="account-item">
             <div class="ai-icon">🔑</div>
-            <div class="ai-body">
-              <p class="ai-label">Metode masuk</p>
-              <p class="ai-value">Google OAuth 2.0</p>
-            </div>
+            <div class="ai-body"><p class="ai-label">Metode masuk</p><p class="ai-value">Google OAuth 2.0</p></div>
           </div>
         </div>
       </div>
@@ -436,7 +244,6 @@
   <script>
     const user = requireLogin();
 
-    // Tampilkan halaman, sembunyikan skeleton
     (function() {
       var sk = document.getElementById("page-skeleton");
       var mc = document.getElementById("main-app-content");
@@ -446,7 +253,119 @@
     renderSidebar("profil");
     applyGlobalSettings();
 
-    /** Ganti tab aktif profil. */
+    // ── Konstanta storage aktivitas ───────────────────────
+    const ACTIVITY_KEY  = "activity_log";
+    const PROCESSED_KEY = "total_processed";
+    const MAX_ACTIVITY  = 10;
+
+    // ── Greeting dinamis ──────────────────────────────────
+    function renderGreeting(name) {
+      const hour = new Date().getHours();
+      let icon, greeting;
+      if (hour >= 5 && hour < 12) {
+        icon = "🌤"; greeting = `Selamat pagi, ${name}!`;
+      } else if (hour >= 12 && hour < 15) {
+        icon = "☀️"; greeting = `Selamat siang, ${name}!`;
+      } else if (hour >= 15 && hour < 18) {
+        icon = "🌅"; greeting = `Selamat sore, ${name}!`;
+      } else {
+        icon = "🌙"; greeting = `Selamat malam, ${name}!`;
+      }
+      const iconEl = document.getElementById("greeting-icon");
+      const textEl = document.getElementById("greeting-text");
+      if (iconEl) iconEl.textContent = icon;
+      if (textEl) textEl.textContent = greeting;
+    }
+
+    // ── Render aktivitas terakhir ─────────────────────────
+    function renderActivity() {
+      const wrap = document.getElementById("activity-list-wrap");
+      if (!wrap) return;
+
+      let log = [];
+      try { log = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || "[]"); } catch(_) {}
+
+      if (!log.length) {
+        wrap.innerHTML = `
+          <div class="activity-empty">
+            <div class="activity-empty-icon">📂</div>
+            Belum ada aktivitas.<br>Coba gunakan salah satu tool converter!
+          </div>`;
+        return;
+      }
+
+      wrap.innerHTML = `<div class="activity-list">${
+        log.slice(0, MAX_ACTIVITY).map(item => `
+          <div class="activity-item">
+            <div class="activity-icon">${item.icon || "🔄"}</div>
+            <div class="activity-body">
+              <p class="activity-title">${escHtml(item.tool)}</p>
+              <p class="activity-time">${timeAgo(item.time)}</p>
+            </div>
+            <span class="activity-badge">${escHtml(item.cat || "Tool")}</span>
+          </div>`
+        ).join("")
+      }</div>`;
+    }
+
+    // ── Render tool favorit ───────────────────────────────
+    function renderFavTool() {
+      let log = [];
+      try { log = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || "[]"); } catch(_) {}
+      if (!log.length) return;
+
+      const freq = {};
+      log.forEach(item => { freq[item.tool] = (freq[item.tool] || 0) + 1; });
+      const fav = Object.entries(freq).sort((a,b) => b[1]-a[1])[0];
+      if (!fav) return;
+
+      const wrap = document.getElementById("fav-tool-wrap");
+      const chip = document.getElementById("fav-tool-chip");
+      if (wrap) wrap.style.display = "block";
+      if (chip) {
+        const entry = log.find(l => l.tool === fav[0]);
+        chip.textContent = `${entry?.icon || "🔄"} ${fav[0]} (${fav[1]}×)`;
+      }
+    }
+
+    // ── Render total file diproses ────────────────────────
+    function renderStats() {
+      const total = parseInt(localStorage.getItem(PROCESSED_KEY) || "0");
+      const el = document.getElementById("stat-processed");
+      if (el) el.textContent = total > 999 ? (total/1000).toFixed(1)+"k" : total;
+    }
+
+    // ── Clear aktivitas ───────────────────────────────────
+    function clearActivity() {
+      if (!confirm("Hapus semua riwayat aktivitas?")) return;
+      localStorage.removeItem(ACTIVITY_KEY);
+      localStorage.removeItem(PROCESSED_KEY);
+      renderActivity();
+      renderFavTool();
+      renderStats();
+      showToast("Aktivitas dihapus ✓");
+    }
+
+    // ── Utilitas ──────────────────────────────────────────
+    function timeAgo(ts) {
+      const diff = Date.now() - ts;
+      const m = Math.floor(diff / 60000);
+      const h = Math.floor(diff / 3600000);
+      const d = Math.floor(diff / 86400000);
+      if (m < 1)  return "Baru saja";
+      if (m < 60) return `${m} menit lalu`;
+      if (h < 24) return `${h} jam lalu`;
+      if (d < 7)  return `${d} hari lalu`;
+      return new Date(ts).toLocaleDateString("id-ID", { day:"numeric", month:"short" });
+    }
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    // ── Tab switching ─────────────────────────────────────
     function switchTab(id, btn) {
       document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
       document.querySelectorAll(".ptab").forEach(b => b.classList.remove("active"));
@@ -454,7 +373,7 @@
       btn.classList.add("active");
     }
 
-    /** Muat data profil dari localStorage dan tampilkan ke UI. */
+    // ── Load & save profil ────────────────────────────────
     function loadProfile() {
       const saved = (() => {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILE) || "{}"); }
@@ -470,6 +389,8 @@
       document.getElementById("info-name").textContent    = displayName;
       document.getElementById("acc-name").textContent     = sanitizeString(user.name || "—", 100);
 
+      renderGreeting(sanitizeString(saved.displayName || user.name || "Kamu", 30));
+
       const email = sanitizeString(user.email || "—", 200);
       document.getElementById("display-email").textContent = email;
       document.getElementById("info-email").textContent    = email;
@@ -479,7 +400,7 @@
       document.getElementById("info-username").textContent = username;
 
       if (saved.bio) {
-        document.getElementById("info-bio").textContent     = sanitizeString(saved.bio, 300);
+        document.getElementById("info-bio").textContent       = sanitizeString(saved.bio, 300);
         document.getElementById("info-bio-wrap").style.display = "block";
       } else {
         document.getElementById("info-bio-wrap").style.display = "none";
@@ -523,14 +444,12 @@
       document.getElementById("input-website").value     = saved.website     || "";
     }
 
-    /** Simpan data profil ke localStorage setelah sanitasi. */
     function saveProfile() {
       const website = sanitizeUrl(document.getElementById("input-website").value.trim());
       if (document.getElementById("input-website").value.trim() && !website) {
         showToast("Format URL situs web tidak valid (harus diawali https://)", "error");
         return;
       }
-
       const profile = {
         displayName: sanitizeString(document.getElementById("input-displayname").value, 100),
         username:    sanitizeString(document.getElementById("input-username").value, 50),
@@ -544,7 +463,6 @@
       switchTab("info", document.querySelectorAll(".ptab")[0]);
     }
 
-    /** Hapus semua data lokal kecuali sesi user. */
     function clearAllData() {
       if (!confirm("Yakin ingin menghapus semua data lokal? Kamu akan tetap masuk.")) return;
       const userBackup  = localStorage.getItem(STORAGE_KEYS.USER);
@@ -556,8 +474,13 @@
       setTimeout(() => location.reload(), 900);
     }
 
+    // ── Init ──────────────────────────────────────────────
     loadProfile();
+    renderActivity();
+    renderFavTool();
+    renderStats();
   </script>
+  <script src="../js/onboarding.js"></script>
   <script src="../js/sw-register.js"></script>
 </body>
-                </html>
+              </html>
