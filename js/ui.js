@@ -466,27 +466,50 @@ function hexToRgba(hex, alpha) {
  * Tambahkan kelas fade-in ke elemen .main-content saat halaman dimuat.
  * Dipanggil otomatis saat script dimuat.
  */
+// ============================================================
+// ui-transition-patch.js
+// Ganti fungsi initPageTransition() di js/ui.js
+// dengan versi di bawah ini (lebih halus, slide + fade)
+// ============================================================
+
 (function initPageTransition() {
+
+  // Fade-in saat halaman pertama dimuat
   document.addEventListener("DOMContentLoaded", () => {
     const main = document.querySelector(".main-content");
-    if (main) {
-      main.classList.add("page-fade-in");
-    }
+    if (main) main.classList.add("page-fade-in");
   });
 
-  // Tambah efek fade-out saat navigasi ke halaman lain
+  // Intercept klik navigasi — animasi fade+slide keluar, lalu pindah halaman
   document.addEventListener("click", (e) => {
     const link = e.target.closest("a.nav-item, a.mobile-nav-item");
-    if (!link || link.getAttribute("href") === "#") return;
+    if (!link) return;
+
     const href = link.getAttribute("href");
-    if (!href || href.startsWith("http")) return;
+    if (!href || href === "#" || href.startsWith("http")) return;
+
+    // Jangan intercept kalau sudah di halaman yang sama
+    const currentPath = window.location.pathname;
+    const targetPath  = new URL(href, window.location.href).pathname;
+    if (currentPath === targetPath) return;
+
     e.preventDefault();
+
     const main = document.querySelector(".main-content");
     if (main) {
-      main.style.opacity = "0";
-      main.style.transform = "translateY(4px)";
-      main.style.transition = "opacity 0.15s ease, transform 0.15s ease";
+      main.style.transition = "opacity 0.18s ease, transform 0.18s ease";
+      main.style.opacity    = "0";
+      main.style.transform  = "translateY(8px)";
     }
-    setTimeout(() => { window.location.href = href; }, 150);
+
+    // Sidebar: dim sedikit saat navigasi
+    const sidebar = document.querySelector(".sidebar");
+    if (sidebar) {
+      sidebar.style.transition = "opacity 0.18s ease";
+      sidebar.style.opacity    = "0.6";
+    }
+
+    setTimeout(() => { window.location.href = href; }, 180);
   });
+
 })();
