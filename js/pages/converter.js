@@ -3,7 +3,7 @@
 // Depends: config.js, auth.js, ui.js (harus di-load lebih dulu)
 // ============================================================
 
-// ── Inisialisasi halaman (harus di atas sebelum apapun) ───
+// ── Inisialisasi halaman ───────────────────────────────────
 requireLogin();
 renderSidebar("converter");
 applyGlobalSettings();
@@ -13,7 +13,6 @@ let currentTool   = null;
 let uploadedFiles = [];
 
 // ── Definisi semua tool ───────────────────────────────────
-
 /**
  * @typedef {{ title:string, desc:string, icon:string, accept:string, multiple:boolean, hint:string }} ToolDef
  * @type {Record<string, ToolDef>}
@@ -315,124 +314,92 @@ const TOOL_OPTIONS = {
 };
 
 // ── Filter kategori ───────────────────────────────────────
-
-/**
- * Filter tampilan grid tool berdasarkan kategori.
- * @param {string} cat - Kategori: 'all' | 'pdf' | 'image' | 'doc'
- * @param {HTMLElement} btn - Tombol tab yang diklik
- */
 function filterCat(cat, btn) {
-  document.querySelectorAll(".cat-tab").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".cat-tab").forEach(b => {
+    b.classList.remove("active");
+    b.removeAttribute("data-cat");
+  });
   btn.classList.add("active");
+  btn.setAttribute("data-cat", cat);
+
+  if (searchQuery) {
+    _applySearch(searchQuery);
+    return;
+  }
+
   document.querySelectorAll(".grid-cat-label").forEach(l => {
     l.style.display = (cat === "all" || l.dataset.cat === cat) ? "" : "none";
   });
   document.querySelectorAll(".tool-grid[data-cat]").forEach(g => {
     g.style.display = (cat === "all" || g.dataset.cat === cat) ? "" : "none";
   });
+  document.querySelectorAll(".tool-card").forEach(c => c.style.display = "");
 }
-// ════════════════════════════════════════════════════════════
-// SEARCH / FILTER TOOLS
-// Tambahkan bagian ini ke js/pages/converter.js,
-// letakkan setelah fungsi filterCat() dan sebelum openTool()
-// ════════════════════════════════════════════════════════════
 
-/** @type {string} Kata kunci pencarian aktif */
+// ── Search ────────────────────────────────────────────────
 let searchQuery = "";
-
-/** @type {ReturnType<typeof setTimeout>|null} */
 let _searchTimer = null;
 
-/**
- * Jalankan pencarian tool dengan debounce 200ms.
- * Dipanggil dari oninput search bar di HTML.
- * @param {string} raw - Nilai input mentah
- */
 function searchTools(raw) {
   clearTimeout(_searchTimer);
   _searchTimer = setTimeout(() => _applySearch(raw), 200);
 }
 
-/**
- * Terapkan pencarian + filter kategori aktif ke semua tool card.
- * @param {string} raw
- */
 function _applySearch(raw) {
   searchQuery = raw.trim().toLowerCase();
 
-  // Tampilkan/sembunyikan tombol clear
   const clearBtn = document.getElementById("tool-search-clear");
   if (clearBtn) clearBtn.style.display = searchQuery ? "flex" : "none";
 
-  // Ambil filter kategori aktif
   const activeTab = document.querySelector(".cat-tab.active");
-  const activeCat = activeTab ? activeTab.getAttribute("data-cat") || "all" : "all";
+  const activeCat = activeTab ? (activeTab.getAttribute("data-cat") || "all") : "all";
 
-  const allCards    = document.querySelectorAll(".tool-card");
-  const catLabels   = document.querySelectorAll(".grid-cat-label");
-  const catGrids    = document.querySelectorAll(".tool-grid[data-cat]");
-  let totalVisible  = 0;
+  const allCards  = document.querySelectorAll(".tool-card");
+  const catGrids  = document.querySelectorAll(".tool-grid[data-cat]");
+  let totalVisible = 0;
 
-  // Filter tiap card
   allCards.forEach(card => {
     const title = (card.dataset.title || "").toLowerCase();
     const desc  = (card.dataset.desc  || "").toLowerCase();
     const tags  = (card.dataset.tags  || "").toLowerCase();
     const cat   = card.closest(".tool-grid")?.dataset.cat || "";
 
-    const matchSearch = !searchQuery ||
-      title.includes(searchQuery) ||
-      desc.includes(searchQuery)  ||
-      tags.includes(searchQuery);
+    const matchSearch = !searchQuery || title.includes(searchQuery) || desc.includes(searchQuery) || tags.includes(searchQuery);
+    const matchCat    = activeCat === "all" || cat === activeCat;
+    const visible     = matchSearch && matchCat;
 
-    const matchCat = activeCat === "all" || cat === activeCat;
-
-    const visible = matchSearch && matchCat;
     card.style.display = visible ? "" : "none";
     if (visible) totalVisible++;
   });
 
-  // Sembunyikan label kategori kalau semua card-nya hidden
   catGrids.forEach(grid => {
     const cat        = grid.dataset.cat;
-    const anyVisible = [...grid.querySelectorAll(".tool-card")]
-      .some(c => c.style.display !== "none");
-
+    const anyVisible = [...grid.querySelectorAll(".tool-card")].some(c => c.style.display !== "none");
     grid.style.display = anyVisible ? "" : "none";
-
-    // Label di atas grid
     const label = document.querySelector(`.grid-cat-label[data-cat="${cat}"]`);
     if (label) label.style.display = anyVisible ? "" : "none";
   });
 
-  // Sembunyikan cat-tabs saat sedang search aktif
   const catTabsBar = document.getElementById("cat-tabs-bar");
   if (catTabsBar) catTabsBar.style.display = searchQuery ? "none" : "";
 
-  // Tampilkan empty state kalau tidak ada hasil
   const emptyState = document.getElementById("search-empty-state");
   if (emptyState) emptyState.style.display = (totalVisible === 0 && searchQuery) ? "flex" : "none";
 }
 
-/**
- * Bersihkan search dan kembalikan tampilan ke kondisi awal.
- */
 function clearSearch() {
   const input = document.getElementById("tool-search-input");
   if (input) input.value = "";
   searchQuery = "";
 
-  // Sembunyikan clear button
   const clearBtn = document.getElementById("tool-search-clear");
   if (clearBtn) clearBtn.style.display = "none";
 
-  // Tampilkan ulang cat-tabs
   const catTabsBar = document.getElementById("cat-tabs-bar");
   if (catTabsBar) catTabsBar.style.display = "";
 
-  // Reset semua card dan label ke kondisi filterCat aktif
   const activeTab = document.querySelector(".cat-tab.active");
-  const activeCat = activeTab ? activeTab.getAttribute("data-cat") || "all" : "all";
+  const activeCat = activeTab ? (activeTab.getAttribute("data-cat") || "all") : "all";
 
   document.querySelectorAll(".tool-card").forEach(c => c.style.display = "");
   document.querySelectorAll(".grid-cat-label").forEach(l => {
@@ -442,78 +409,37 @@ function clearSearch() {
     g.style.display = (activeCat === "all" || g.dataset.cat === activeCat) ? "" : "none";
   });
 
-  // Sembunyikan empty state
   const emptyState = document.getElementById("search-empty-state");
   if (emptyState) emptyState.style.display = "none";
 
-  // Fokus kembali ke search bar
   const input2 = document.getElementById("tool-search-input");
   if (input2) input2.focus();
 }
 
-// ── Patch filterCat agar kompatibel dengan search aktif ──
-// Simpan referensi filterCat asli lalu wrap
-const _filterCatOriginal = filterCat;
-// Override filterCat agar set data-cat di tombol aktif
-function filterCat(cat, btn) {
-  document.querySelectorAll(".cat-tab").forEach(b => {
-    b.classList.remove("active");
-    b.removeAttribute("data-cat");
-  });
-  btn.classList.add("active");
-  btn.setAttribute("data-cat", cat);
-
-  // Kalau ada search aktif, re-apply search dengan filter baru
-  if (searchQuery) {
-    _applySearch(searchQuery);
-    return;
-  }
-
-  // Tidak ada search — pakai logika lama
-  document.querySelectorAll(".grid-cat-label").forEach(l => {
-    l.style.display = (cat === "all" || l.dataset.cat === cat) ? "" : "none";
-  });
-  document.querySelectorAll(".tool-grid[data-cat]").forEach(g => {
-    g.style.display = (cat === "all" || g.dataset.cat === cat) ? "" : "none";
-  });
-
-  // Pastikan semua card visible (clear search state)
-  document.querySelectorAll(".tool-card").forEach(c => c.style.display = "");
-}
-
-// ── Set data-cat awal di tombol "Semua" saat halaman load ──
-document.addEventListener("DOMContentLoaded", () => {
-  const firstTab = document.querySelector(".cat-tab.active");
-  if (firstTab && !firstTab.getAttribute("data-cat")) {
-    firstTab.setAttribute("data-cat", "all");
-  }
-});
-
-// ── Shortcut keyboard: tekan "/" untuk fokus ke search ───
+// Shortcut keyboard
 document.addEventListener("keydown", (e) => {
-  // Jangan trigger kalau sedang di dalam input/textarea
   if (e.key === "/" && !["INPUT","TEXTAREA"].includes(document.activeElement.tagName)) {
     const input = document.getElementById("tool-search-input");
     const panel = document.getElementById("tool-panel");
-    // Hanya aktif kalau panel tool tidak sedang terbuka
     if (input && panel && !panel.classList.contains("show")) {
       e.preventDefault();
       input.focus();
       input.select();
     }
   }
-  // Escape untuk clear search
   if (e.key === "Escape") {
     const input = document.getElementById("tool-search-input");
-    if (input && document.activeElement === input && searchQuery) {
-      clearSearch();
-    }
+    if (input && document.activeElement === input && searchQuery) clearSearch();
   }
 });
-/**
- * Buka panel tool tertentu.
- * @param {string} id - ID tool dari objek TOOLS
- */
+
+// Set data-cat awal
+document.addEventListener("DOMContentLoaded", () => {
+  const firstTab = document.querySelector(".cat-tab.active");
+  if (firstTab && !firstTab.getAttribute("data-cat")) firstTab.setAttribute("data-cat", "all");
+});
+
+// ── Open / close tool panel ───────────────────────────────
 function openTool(id) {
   currentTool   = id;
   uploadedFiles = [];
@@ -537,6 +463,9 @@ function openTool(id) {
   document.getElementById("img-source-preview-wrap").style.display = "none";
   document.getElementById("tool-panel").classList.add("show");
 
+  // ── Catat aktivitas ──
+  _trackActivity(id);
+
   if (id === "split") {
     document.querySelectorAll('input[name="split-mode"]').forEach(r => {
       r.addEventListener("change", () => {
@@ -547,7 +476,6 @@ function openTool(id) {
   }
 }
 
-/** Tutup panel tool dan kembali ke grid. */
 function closeTool() {
   currentTool   = null;
   uploadedFiles = [];
@@ -555,12 +483,126 @@ function closeTool() {
   document.getElementById("tool-grid-section").style.display = "block";
 }
 
-// ── Penanganan file ───────────────────────────────────────
+// ── Tracking aktivitas ────────────────────────────────────
+const ACTIVITY_KEY  = "activity_log";
+const PROCESSED_KEY = "total_processed";
+const MAX_ACTIVITY  = 10;
 
-/**
- * Terima file dari input atau drop, tambahkan ke daftar.
- * @param {FileList} fileList
- */
+function _trackActivity(toolId) {
+  const t = TOOLS[toolId];
+  if (!t) return;
+
+  const pdfTools   = ["merge","split","rotate","deletepages","compresspdf","watermarkpdf","passwordpdf","pdf2txt","img2pdf","pdf2img"];
+  const imageTools = ["imgconvert","compress","resize","crop","rotate_img","adjust","grayscale","blur","watermarkimg","exif","base64img","mergeimg","ascii"];
+  let cat = "Dokumen";
+  if (pdfTools.includes(toolId))   cat = "PDF";
+  if (imageTools.includes(toolId)) cat = "Gambar";
+
+  const entry = { tool: t.title, icon: t.icon, cat, time: Date.now() };
+
+  let log = [];
+  try { log = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || "[]"); } catch(_) {}
+  log = log.filter(l => l.tool !== entry.tool);
+  log.unshift(entry);
+  if (log.length > MAX_ACTIVITY) log = log.slice(0, MAX_ACTIVITY);
+  try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(log)); } catch(_) {}
+
+  const total = parseInt(localStorage.getItem(PROCESSED_KEY) || "0") + 1;
+  try { localStorage.setItem(PROCESSED_KEY, total); } catch(_) {}
+}
+
+// ── Drag & drop feedback ──────────────────────────────────
+function _initDragDropFeedback() {
+  const dz = document.getElementById("panel-dropzone");
+  if (!dz) return;
+
+  let dragCounter = 0;
+
+  dz.addEventListener("dragenter", (e) => {
+    e.preventDefault();
+    dragCounter++;
+    if (dragCounter === 1) {
+      const items  = e.dataTransfer?.items;
+      const t      = currentTool ? TOOLS[currentTool] : null;
+      let isValid  = true;
+
+      if (items && t) {
+        const accept = t.accept;
+        isValid = [...items].every(item => {
+          if (item.kind !== "file") return false;
+          if (accept.includes("image/*")) return item.type.startsWith("image/");
+          if (accept.includes(".pdf"))    return item.type === "application/pdf";
+          return true;
+        });
+      }
+
+      if (!isValid) {
+        dz.classList.add("drag-invalid");
+        _showDragError(dz, `Format tidak didukung. Tool ini menerima: ${t?.accept || "file"}`);
+      } else {
+        dz.classList.add("drag-over");
+        _removeDragError(dz);
+      }
+    }
+  });
+
+  dz.addEventListener("dragleave", () => {
+    dragCounter--;
+    if (dragCounter === 0) {
+      dz.classList.remove("drag-over", "drag-invalid");
+      _removeDragError(dz);
+    }
+  });
+
+  dz.addEventListener("dragover", (e) => { e.preventDefault(); });
+
+  dz.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dragCounter = 0;
+    dz.classList.remove("drag-over", "drag-invalid");
+    _removeDragError(dz);
+
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    const t = currentTool ? TOOLS[currentTool] : null;
+    if (t) {
+      const accept  = t.accept;
+      const invalid = [...files].some(f => {
+        if (accept.includes("image/*")) return !f.type.startsWith("image/");
+        if (accept.includes(".pdf"))    return f.type !== "application/pdf";
+        return false;
+      });
+
+      if (invalid) {
+        dz.classList.add("drag-invalid");
+        _showDragError(dz, `File tidak sesuai. Diperlukan: ${accept}`);
+        setTimeout(() => { dz.classList.remove("drag-invalid"); _removeDragError(dz); }, 2000);
+        showToast("Format file tidak sesuai tool ini", "error");
+        return;
+      }
+    }
+
+    dz.classList.add("drop-success");
+    setTimeout(() => dz.classList.remove("drop-success"), 600);
+    handlePanelFiles(files);
+  });
+}
+
+function _showDragError(dz, msg) {
+  _removeDragError(dz);
+  const el = document.createElement("div");
+  el.className = "drag-error-msg";
+  el.id = "drag-error-msg";
+  el.textContent = "⚠️ " + msg;
+  dz.appendChild(el);
+}
+function _removeDragError(dz) {
+  const el = document.getElementById("drag-error-msg");
+  if (el) el.remove();
+}
+
+// ── Penanganan file ───────────────────────────────────────
 function handlePanelFiles(fileList) {
   const t = TOOLS[currentTool];
   if (!t.multiple) uploadedFiles = [];
@@ -569,7 +611,6 @@ function handlePanelFiles(fileList) {
   onFilesReady();
 }
 
-/** Render daftar file yang sudah diunggah. */
 function renderFileList() {
   const list = document.getElementById("file-list");
   list.innerHTML = uploadedFiles.map((f, i) => `
@@ -579,15 +620,13 @@ function renderFileList() {
       <span class="fi-size">${fmtSize(f.size)}</span>
       <button class="fi-del" onclick="removeFile(${i})" aria-label="Hapus file">✕</button>
     </div>`).join("");
-  document.getElementById("btn-process").disabled        = uploadedFiles.length === 0;
-  document.getElementById("btn-clear").style.display     = uploadedFiles.length > 0 ? "inline-flex" : "none";
+  document.getElementById("btn-process").disabled    = uploadedFiles.length === 0;
+  document.getElementById("btn-clear").style.display = uploadedFiles.length > 0 ? "inline-flex" : "none";
   document.getElementById("result-box").classList.remove("show");
 }
 
-/** @param {number} idx - Indeks file yang dihapus */
 function removeFile(idx) { uploadedFiles.splice(idx, 1); renderFileList(); }
 
-/** Hapus semua file dari daftar. */
 function clearFiles() {
   uploadedFiles = [];
   document.getElementById("panel-input").value = "";
@@ -595,9 +634,6 @@ function clearFiles() {
   document.getElementById("img-source-preview-wrap").style.display = "none";
 }
 
-/**
- * Callback setelah file berhasil dipilih — inisialisasi pratinjau & fitur khusus.
- */
 function onFilesReady() {
   const imgTools = ["compress","resize","crop","rotate_img","adjust","grayscale","blur",
                     "watermarkimg","exif","base64img","imgconvert","mergeimg","ascii"];
@@ -622,22 +658,11 @@ function onFilesReady() {
 }
 
 // ── Progress & hasil ──────────────────────────────────────
-
-/**
- * Set nilai progress bar.
- * @param {number} pct - Persentase 0-100
- */
 function setProgress(pct) {
   document.getElementById("progress-bar").style.display = "block";
   document.getElementById("progress-fill").style.width  = pct + "%";
 }
 
-/**
- * Tampilkan kotak hasil dengan tombol unduh.
- * @param {string} title
- * @param {string} desc
- * @param {{ label:string, blob:Blob, filename:string }[]} downloads
- */
 function showResult(title, desc, downloads) {
   document.getElementById("result-title").textContent = title;
   document.getElementById("result-desc").textContent  = desc;
@@ -649,10 +674,6 @@ function showResult(title, desc, downloads) {
   setProgress(100);
 }
 
-/**
- * Unduh file hasil pada indeks tertentu.
- * @param {number} i
- */
 function triggerDownload(i) {
   const d = window._downloads[i];
   const a = document.createElement("a");
@@ -663,8 +684,6 @@ function triggerDownload(i) {
 }
 
 // ── Dispatcher utama ──────────────────────────────────────
-
-/** Peta tool ID → fungsi handler */
 const handlers = {
   merge, split, rotate, deletepages, compresspdf, watermarkpdf, passwordpdf,
   pdf2txt, img2pdf, pdf2img, imgconvert, compress, resize, crop: cropImg,
@@ -672,7 +691,6 @@ const handlers = {
   watermarkimg, exif: exifTool, base64img, mergeimg, md2html, csv2json, ascii: asciiArt,
 };
 
-/** Jalankan proses sesuai tool aktif. */
 async function processFile() {
   if (!currentTool || uploadedFiles.length === 0) return;
   document.getElementById("btn-process").disabled = true;
@@ -693,7 +711,6 @@ async function processFile() {
 // PDF TOOLS
 // ════════════════════════════════════════════════════════════
 
-/** Gabungkan beberapa PDF menjadi satu. */
 async function merge() {
   if (uploadedFiles.length < 2) { showToast("Unggah minimal 2 file PDF", "error"); return; }
   const { PDFDocument } = PDFLib;
@@ -711,7 +728,6 @@ async function merge() {
     [{ label:"Unduh PDF", blob: new Blob([bytes], { type:"application/pdf" }), filename:"gabungan.pdf" }]);
 }
 
-/** Pisahkan halaman PDF. */
 async function split() {
   const { PDFDocument } = PDFLib;
   const buf   = await uploadedFiles[0].arrayBuffer();
@@ -719,14 +735,12 @@ async function split() {
   const total = doc.getPageCount();
   const mode  = document.querySelector('input[name="split-mode"]:checked').value;
   let ranges  = [];
-
   if (mode === "all") {
     ranges = Array.from({ length: total }, (_, i) => [i]);
   } else {
     ranges = parseRanges(sanitizeString(document.getElementById("split-range").value, 100), total);
     if (!ranges.length) { showToast("Format rentang tidak valid", "error"); return; }
   }
-
   const downloads = [];
   for (let r = 0; r < ranges.length; r++) {
     setProgress(15 + Math.round((r / ranges.length) * 75));
@@ -743,7 +757,6 @@ async function split() {
   showResult("PDF berhasil dipecah!", `${ranges.length} file dari ${total} halaman`, downloads);
 }
 
-/** Putar semua halaman PDF. */
 async function rotate() {
   const { PDFDocument, degrees } = PDFLib;
   const buf = await uploadedFiles[0].arrayBuffer();
@@ -758,7 +771,6 @@ async function rotate() {
     [{ label:"Unduh PDF", blob: new Blob([bytes], { type:"application/pdf" }), filename: name }]);
 }
 
-/** Hapus halaman tertentu dari PDF. */
 async function deletepages() {
   const raw = sanitizeString(document.getElementById("del-pages").value, 100);
   if (!raw.trim()) { showToast("Masukkan nomor halaman yang ingin dihapus", "error"); return; }
@@ -776,7 +788,6 @@ async function deletepages() {
     [{ label:"Unduh PDF", blob: new Blob([bytes], { type:"application/pdf" }), filename:"hapus_halaman.pdf" }]);
 }
 
-/** Kompres PDF dengan pdf-lib (re-save + object streams). */
 async function compresspdf() {
   const { PDFDocument } = PDFLib;
   const buf  = await uploadedFiles[0].arrayBuffer();
@@ -790,10 +801,9 @@ async function compresspdf() {
     [{ label:"Unduh PDF", blob: new Blob([bytes], { type:"application/pdf" }), filename: name }]);
 }
 
-/** Tambahkan tanda air teks ke setiap halaman PDF. */
 async function watermarkpdf() {
-  const wmText  = sanitizeString(document.getElementById("wm-text").value || "TANDA AIR", 50);
-  const opacity = parseFloat(document.getElementById("wm-opacity").value) / 100;
+  const wmText   = sanitizeString(document.getElementById("wm-text").value || "TANDA AIR", 50);
+  const opacity  = parseFloat(document.getElementById("wm-opacity").value) / 100;
   const colorKey = document.querySelector('input[name="wm-color"]:checked').value;
   const colorMap = { gray:[0.5,0.5,0.5], red:[0.85,0.1,0.1], blue:[0.1,0.2,0.8] };
   const [r, g, b] = colorMap[colorKey];
@@ -820,7 +830,6 @@ async function watermarkpdf() {
     [{ label:"Unduh PDF", blob: new Blob([bytes], { type:"application/pdf" }), filename: name }]);
 }
 
-/** Proteksi PDF dengan kata sandi (catatan keterbatasan pdf-lib). */
 async function passwordpdf() {
   const p1 = document.getElementById("pdf-password").value;
   const p2 = document.getElementById("pdf-password2").value;
@@ -838,7 +847,6 @@ async function passwordpdf() {
     [{ label:"Unduh PDF", blob: new Blob([bytes], { type:"application/pdf" }), filename:"output.pdf" }]);
 }
 
-/** Ekstrak teks dari PDF menggunakan PDF.js. */
 async function pdf2txt() {
   if (!window.pdfjsLib) {
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
@@ -862,7 +870,6 @@ async function pdf2txt() {
     [{ label:"Unduh TXT", blob, filename: name }]);
 }
 
-/** Konversi beberapa gambar menjadi satu PDF. */
 async function img2pdf() {
   const { PDFDocument } = PDFLib;
   const pdfDoc  = await PDFDocument.create();
@@ -897,7 +904,6 @@ async function img2pdf() {
     [{ label:"Unduh PDF", blob: new Blob([bytes], { type:"application/pdf" }), filename:"gambar.pdf" }]);
 }
 
-/** Render setiap halaman PDF menjadi gambar JPG. */
 async function pdf2img() {
   if (!window.pdfjsLib) {
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
@@ -924,10 +930,9 @@ async function pdf2img() {
 }
 
 // ════════════════════════════════════════════════════════════
-// TOOLS GAMBAR
+// IMAGE TOOLS
 // ════════════════════════════════════════════════════════════
 
-/** Konversi format gambar (JPG/PNG/WEBP). */
 async function imgconvert() {
   const file = uploadedFiles[0];
   const fmt  = document.querySelector('input[name="imgfmt"]:checked').value;
@@ -940,7 +945,6 @@ async function imgconvert() {
     [{ label:`Unduh ${ext.toUpperCase()}`, blob, filename: name }]);
 }
 
-/** Kompres gambar dengan kualitas yang dapat disetel. */
 async function compress() {
   const file    = uploadedFiles[0];
   const quality = parseInt(document.getElementById("compress-quality").value) / 100;
@@ -953,7 +957,6 @@ async function compress() {
     [{ label:"Unduh JPG", blob, filename: name }]);
 }
 
-/** Ubah ukuran dimensi gambar. */
 async function resize() {
   const file = uploadedFiles[0];
   const newW = parseInt(document.getElementById("resize-w").value);
@@ -972,14 +975,8 @@ async function resize() {
     [{ label:"Unduh", blob, filename: name }]);
 }
 
-// ── Crop ─────────────────────────────────────────────────
-
 let cropData = null;
 
-/**
- * Inisialisasi UI crop interaktif dengan drag & drop visual.
- * @param {string} url - Object URL gambar
- */
 function initCrop(url) {
   cropData = null;
   const wrap = document.getElementById("crop-wrap");
@@ -996,7 +993,7 @@ function initCrop(url) {
     const rect = img.getBoundingClientRect();
     const cx   = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
     const cy   = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-    return { x: Math.max(0, Math.min(cx, rect.width)), y: Math.max(0, Math.min(cy, rect.height)), rw: rect.width, rh: rect.height };
+    return { x: Math.max(0, Math.min(cx, rect.width)), y: Math.max(0, Math.min(cy, rect.height)) };
   }
 
   function onDown(e) { e.preventDefault(); const p = getRelPos(e); startX = p.x; startY = p.y; dragging = true; sel.style.display = "none"; }
@@ -1007,7 +1004,7 @@ function initCrop(url) {
     const w = Math.abs(p.x - startX), h = Math.abs(p.y - startY);
     sel.style.cssText += `;left:${x}px;top:${y}px;width:${w}px;height:${h}px;display:block`;
   }
-  function onUp(e) {
+  function onUp() {
     if (!dragging) return; dragging = false;
     const rect   = img.getBoundingClientRect();
     const scaleX = img.naturalWidth  / rect.width;
@@ -1031,7 +1028,6 @@ function initCrop(url) {
   document.addEventListener("touchend",   onUp);
 }
 
-/** Eksekusi pemotongan gambar sesuai seleksi. */
 async function cropImg() {
   if (!cropData) { showToast("Pilih area potong dengan menyeret di gambar!", "error"); return; }
   const { sx, sy, sw, sh } = cropData;
@@ -1048,7 +1044,6 @@ async function cropImg() {
     [{ label:"Unduh", blob, filename: name }]);
 }
 
-/** Putar atau balik (mirror) gambar. */
 async function rotate_img() {
   const file = uploadedFiles[0];
   const deg  = parseInt(document.querySelector('input[name="ri-rot"]:checked').value);
@@ -1072,7 +1067,6 @@ async function rotate_img() {
   showResult("Gambar berhasil diproses!", "", [{ label:"Unduh", blob, filename: name }]);
 }
 
-/** Pratinjau live penyesuaian kecerahan/kontras/saturasi. */
 function previewAdjust() {
   const img = window._adjImg;
   if (!img) return;
@@ -1087,7 +1081,6 @@ function previewAdjust() {
   document.getElementById("adjust-preview-wrap").style.display = "block";
 }
 
-/** Terapkan penyesuaian kecerahan/kontras/saturasi ke file. */
 async function adjustImg() {
   const file = uploadedFiles[0];
   const br   = parseInt(document.getElementById("adj-brightness").value);
@@ -1106,7 +1099,6 @@ async function adjustImg() {
   showResult("Gambar berhasil disesuaikan!", "", [{ label:"Unduh", blob, filename: name }]);
 }
 
-/** Ubah gambar menjadi skala abu-abu. */
 async function grayscale() {
   const file = uploadedFiles[0];
   const bm   = await createImageBitmap(file);
@@ -1123,7 +1115,6 @@ async function grayscale() {
     [{ label:"Unduh", blob, filename: name }]);
 }
 
-/** Tambahkan efek blur ke gambar. */
 async function blurImg() {
   const file   = uploadedFiles[0];
   const amount = parseInt(document.getElementById("blur-amount").value);
@@ -1140,7 +1131,6 @@ async function blurImg() {
   showResult("Efek blur berhasil diterapkan!", "", [{ label:"Unduh", blob, filename: name }]);
 }
 
-/** Pratinjau live tanda air pada gambar. */
 function previewWatermarkImg() {
   const img     = window._wmiImg;
   if (!img) return;
@@ -1168,7 +1158,6 @@ function previewWatermarkImg() {
   document.getElementById("wmi-preview-wrap").style.display = "block";
 }
 
-/** Terapkan tanda air teks ke gambar. */
 async function watermarkimg() {
   const file    = uploadedFiles[0];
   const text    = sanitizeString(document.getElementById("wmi-text").value || "© Tanda Air", 80);
@@ -1197,7 +1186,6 @@ async function watermarkimg() {
   showResult("Tanda air berhasil ditambahkan!", "", [{ label:"Unduh", blob, filename: name }]);
 }
 
-/** Baca metadata EXIF dari gambar JPEG dan buat versi tanpa EXIF. */
 async function exifTool() {
   const file = uploadedFiles[0];
   setProgress(30);
@@ -1206,7 +1194,6 @@ async function exifTool() {
   let exifData = {};
   try { exifData = parseBasicExif(view); } catch(_) {}
   setProgress(60);
-
   const optDiv = document.getElementById("tool-options");
   if (Object.keys(exifData).length === 0) {
     optDiv.innerHTML += `<div class="info-row" style="border:none"><span class="info-label">Tidak ada data EXIF ditemukan di file ini.</span></div>`;
@@ -1219,7 +1206,6 @@ async function exifTool() {
         <table class="exif-table"><thead><tr><th>Tag</th><th>Nilai</th></tr></thead><tbody>${rows}</tbody></table>
       </div>`;
   }
-
   const bm     = await createImageBitmap(file);
   const canvas = document.getElementById("work-canvas");
   canvas.width = bm.width; canvas.height = bm.height;
@@ -1234,11 +1220,6 @@ async function exifTool() {
     [{ label:"Unduh Tanpa EXIF", blob, filename: name }]);
 }
 
-/**
- * Parse metadata EXIF dasar dari DataView JPEG.
- * @param {DataView} view
- * @returns {Record<string,string|number>}
- */
 function parseBasicExif(view) {
   const result = {};
   if (view.getUint16(0) !== 0xFFD8) return result;
@@ -1289,7 +1270,6 @@ function parseBasicExif(view) {
   return result;
 }
 
-/** Encode gambar ke string Base64. */
 async function base64img() {
   const file = uploadedFiles[0];
   setProgress(40);
@@ -1316,7 +1296,6 @@ async function base64img() {
     [{ label:"Unduh TXT", blob, filename: name }]);
 }
 
-/** Gabungkan beberapa gambar menjadi satu kanvas. */
 async function mergeimg() {
   if (uploadedFiles.length < 2) { showToast("Unggah minimal 2 gambar", "error"); return; }
   const dir  = document.querySelector('input[name="merge-dir"]:checked').value;
@@ -1347,49 +1326,36 @@ async function mergeimg() {
 }
 
 // ════════════════════════════════════════════════════════════
-// TOOLS DOKUMEN
+// DOKUMEN TOOLS
 // ════════════════════════════════════════════════════════════
 
-/** Konversi Markdown ke HTML. */
 async function md2html() {
   const file = uploadedFiles[0];
   const text = await file.text();
   setProgress(40);
   let html = text
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/^#{6}\s(.+)$/gm, "<h6>$1</h6>")
-    .replace(/^#{5}\s(.+)$/gm, "<h5>$1</h5>")
-    .replace(/^#{4}\s(.+)$/gm, "<h4>$1</h4>")
-    .replace(/^###\s(.+)$/gm,  "<h3>$1</h3>")
-    .replace(/^##\s(.+)$/gm,   "<h2>$1</h2>")
-    .replace(/^#\s(.+)$/gm,    "<h1>$1</h1>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g,     "<em>$1</em>")
-    .replace(/`(.+?)`/g,       "<code>$1</code>")
+    .replace(/^#{6}\s(.+)$/gm, "<h6>$1</h6>").replace(/^#{5}\s(.+)$/gm, "<h5>$1</h5>")
+    .replace(/^#{4}\s(.+)$/gm, "<h4>$1</h4>").replace(/^###\s(.+)$/gm,  "<h3>$1</h3>")
+    .replace(/^##\s(.+)$/gm,   "<h2>$1</h2>").replace(/^#\s(.+)$/gm,    "<h1>$1</h1>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/`(.+?)`/g, "<code>$1</code>")
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
     .replace(/^---$/gm, "<hr>")
     .replace(/^[-*]\s(.+)$/gm, "<li>$1</li>")
     .replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>")
     .replace(/^\d+\.\s(.+)$/gm, "<li>$1</li>")
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/\n/g, "<br>");
+    .replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>");
   html = "<p>" + html + "</p>";
-
   const fullHtml = `<!DOCTYPE html>
-<html lang="id">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escHtml(file.name.replace(".md",""))}</title>
-<style>
-  body{font-family:system-ui,sans-serif;max-width:760px;margin:48px auto;padding:0 24px;line-height:1.7;color:#1a1a2e}
-  h1,h2,h3{line-height:1.3;margin-top:1.8em}
-  h1{font-size:2em;border-bottom:2px solid #eee;padding-bottom:.3em}
-  h2{font-size:1.5em;border-bottom:1px solid #f0f0f0;padding-bottom:.2em}
-  code{background:#f4f4f8;padding:2px 6px;border-radius:4px;font-size:.9em}
-  a{color:#7c6aff} hr{border:none;border-top:1px solid #eee;margin:2em 0}
-  ul{padding-left:1.5em} li{margin:.3em 0}
-</style>
+<style>body{font-family:system-ui,sans-serif;max-width:760px;margin:48px auto;padding:0 24px;line-height:1.7;color:#1a1a2e}
+h1,h2,h3{line-height:1.3;margin-top:1.8em}h1{font-size:2em;border-bottom:2px solid #eee;padding-bottom:.3em}
+h2{font-size:1.5em;border-bottom:1px solid #f0f0f0;padding-bottom:.2em}
+code{background:#f4f4f8;padding:2px 6px;border-radius:4px;font-size:.9em}
+a{color:#7c6aff}hr{border:none;border-top:1px solid #eee;margin:2em 0}ul{padding-left:1.5em}li{margin:.3em 0}</style>
 </head><body>${html}</body></html>`;
-
   setProgress(90);
   const blob = new Blob([fullHtml], { type:"text/html;charset=utf-8" });
   const name = file.name.replace(/\.[^.]+$/, "") + ".html";
@@ -1397,7 +1363,6 @@ async function md2html() {
     [{ label:"Unduh HTML", blob, filename: name }]);
 }
 
-/** Konversi CSV ↔ JSON. */
 async function csv2json() {
   const file = uploadedFiles[0];
   const text = await file.text();
@@ -1406,7 +1371,6 @@ async function csv2json() {
   const actualMode = mode === "auto" ? (ext === "json" ? "json2csv" : "csv2json") : mode;
   setProgress(40);
   let blob, name, desc;
-
   if (actualMode === "csv2json") {
     const lines   = text.trim().split("\n").filter(Boolean);
     const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
@@ -1441,7 +1405,7 @@ async function csv2json() {
 }
 
 // ════════════════════════════════════════════════════════════
-// SENI ASCII
+// ASCII ART
 // ════════════════════════════════════════════════════════════
 
 const ASCII_CHARSETS = {
@@ -1451,7 +1415,6 @@ const ASCII_CHARSETS = {
   emoji:    ['  ','🌑','🌒','🌓','🌔','🌕'],
 };
 
-/** Konversi gambar menjadi seni ASCII. */
 async function asciiArt() {
   const file    = uploadedFiles[0];
   const width   = Math.min(200, Math.max(40, parseInt(document.getElementById("ascii-width").value)));
@@ -1462,15 +1425,13 @@ async function asciiArt() {
   const bitmap  = await createImageBitmap(file);
   const canvas  = document.getElementById("work-canvas");
   const height  = Math.round(width * (bitmap.height / bitmap.width) * 0.45);
-  canvas.width  = width;
-  canvas.height = height;
+  canvas.width  = width; canvas.height = height;
   const ctx     = canvas.getContext("2d");
   ctx.drawImage(bitmap, 0, 0, width, height);
   const pixels = ctx.getImageData(0, 0, width, height).data;
   setProgress(60);
 
   const output = document.getElementById("ascii-output-pre");
-
   if (colored) {
     let html = "";
     for (let y = 0; y < height; y++) {
@@ -1509,13 +1470,6 @@ async function asciiArt() {
   ]);
 }
 
-/**
- * Render output ASCII ke canvas dan kembalikan sebagai Blob PNG.
- * @param {HTMLPreElement} preEl
- * @param {boolean} invert
- * @param {boolean} colored
- * @returns {Promise<Blob>}
- */
 async function asciiToPng(preEl, invert, colored) {
   const text  = preEl.textContent || preEl.innerText;
   const lines = text.split("\n");
@@ -1545,7 +1499,6 @@ async function asciiToPng(preEl, invert, colored) {
   return new Promise(res => ec.toBlob(res, "image/png"));
 }
 
-/** Salin output ASCII ke papan klip. */
 function asciiCopy() {
   const out = document.getElementById("ascii-output-pre");
   navigator.clipboard.writeText(out.textContent || out.innerText)
@@ -1553,7 +1506,6 @@ function asciiCopy() {
     .catch(() => showToast("Gagal menyalin", "error"));
 }
 
-/** Salin output ASCII dengan format code block untuk WhatsApp. */
 function asciiCopyWA() {
   const out = document.getElementById("ascii-output-pre");
   const raw = out.textContent || out.innerText;
@@ -1563,15 +1515,9 @@ function asciiCopyWA() {
 }
 
 // ════════════════════════════════════════════════════════════
-// FUNGSI UTILITAS
+// UTILITAS
 // ════════════════════════════════════════════════════════════
 
-/**
- * Parse string rentang halaman seperti "1-3, 5, 7-9".
- * @param {string} str
- * @param {number} total - Total halaman dalam dokumen
- * @returns {number[][]} Array dari array indeks halaman (0-based)
- */
 function parseRanges(str, total) {
   const parts = str.split(",").map(s => s.trim()).filter(Boolean);
   const result = [];
@@ -1588,13 +1534,6 @@ function parseRanges(str, total) {
   return result;
 }
 
-/**
- * Konversi gambar ke format lain via Canvas.
- * @param {File} file
- * @param {string} mimeType
- * @param {number} quality - 0.0–1.0
- * @returns {Promise<Blob>}
- */
 async function canvasConvert(file, mimeType, quality) {
   const bm = await createImageBitmap(file);
   const c  = document.getElementById("work-canvas");
@@ -1603,11 +1542,6 @@ async function canvasConvert(file, mimeType, quality) {
   return new Promise(res => c.toBlob(res, mimeType, quality));
 }
 
-/**
- * Muat script eksternal secara dinamis.
- * @param {string} src - URL script
- * @returns {Promise<void>}
- */
 function loadScript(src) {
   return new Promise((res, rej) => {
     const s = document.createElement("script");
@@ -1616,42 +1550,26 @@ function loadScript(src) {
   });
 }
 
-/**
- * Format ukuran file ke string yang mudah dibaca.
- * @param {number} b - Ukuran dalam byte
- * @returns {string}
- */
 function fmtSize(b) {
-  if (b < 1024)      return b + " B";
-  if (b < 1048576)   return (b / 1024).toFixed(1) + " KB";
+  if (b < 1024)    return b + " B";
+  if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
   return (b / 1048576).toFixed(2) + " MB";
 }
 
-/**
- * Escape karakter HTML untuk mencegah XSS.
- * @param {string} str
- * @returns {string}
- */
 function escHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;")
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-// ── Drag & Drop ke upload zone ────────────────────────────
-(function initDragDrop() {
-  const dz = document.getElementById("panel-dropzone");
-  if (!dz) return;
-  dz.addEventListener("dragover",  e => { e.preventDefault(); dz.classList.add("drag-over"); });
-  dz.addEventListener("dragleave", ()  => dz.classList.remove("drag-over"));
-  dz.addEventListener("drop",      e  => {
-    e.preventDefault();
-    dz.classList.remove("drag-over");
-    handlePanelFiles(e.dataTransfer.files);
-  });
-})();
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
 
-// ── Inisialisasi halaman ──────────────────────────────────
 (function initConverterPage() {
-  // inisialisasi sudah di awal file
+  // Inisialisasi drag & drop feedback yang lebih kaya
+  // Panel belum ada saat ini, _initDragDropFeedback dipanggil
+  // ulang setiap openTool() karena dropzone di-reset
+  // Cukup pasang sekali di sini, handler akan tetap aktif
+  _initDragDropFeedback();
 })();
