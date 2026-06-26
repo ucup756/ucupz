@@ -8,11 +8,11 @@
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/pages.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body class="app-page">
   <aside class="sidebar" id="sidebar"></aside>
 
-  <!-- Skeleton loading -->
   <main class="main-content" id="skeleton-screen" aria-hidden="true">
     <div class="skeleton-page">
       <div class="skeleton skeleton-title"></div>
@@ -33,42 +33,33 @@
     </div>
   </main>
 
-  <!-- Konten utama -->
   <main class="main-content" id="main-content" style="display:none">
     <div class="page-header">
       <div>
         <h1 class="page-title">Converter</h1>
         <p class="page-sub">Tools PDF &amp; gambar — semua proses di browser, tidak ada yang dikirim ke server.</p>
       </div>
+      <button class="batch-trigger-btn" onclick="window.batchOpen()" title="Proses banyak gambar sekaligus">
+        ⚡ Batch
+      </button>
     </div>
 
-    <!-- Grid Tools -->
     <div id="tool-grid-section">
-
-      <!-- Search bar -->
       <div class="tool-search-wrap">
         <span class="tool-search-icon">🔍</span>
-        <input
-          type="search"
-          id="tool-search-input"
-          class="tool-search-input"
-          placeholder="Cari tool... (contoh: kompres, putar, tanda air)"
-          maxlength="60"
-          autocomplete="off"
-          oninput="searchTools(this.value)"
-        />
+        <input type="search" id="tool-search-input" class="tool-search-input"
+          placeholder="Cari tool... (atau tekan /)" maxlength="60" autocomplete="off"
+          oninput="searchTools(this.value)" />
         <button class="tool-search-clear" id="tool-search-clear" onclick="clearSearch()" aria-label="Hapus pencarian">✕</button>
       </div>
 
-      <!-- Cat tabs -->
       <div class="cat-tabs" id="cat-tabs-bar">
-        <button class="cat-tab active" onclick="filterCat('all',this)">📦 Semua</button>
+        <button class="cat-tab active" data-cat="all" onclick="filterCat('all',this)">📦 Semua</button>
         <button class="cat-tab" onclick="filterCat('pdf',this)">📄 PDF</button>
         <button class="cat-tab" onclick="filterCat('image',this)">🖼 Gambar</button>
         <button class="cat-tab" onclick="filterCat('doc',this)">📝 Dokumen</button>
       </div>
 
-      <!-- Empty state pencarian -->
       <div id="search-empty-state" style="display:none" class="search-empty">
         <div class="search-empty-icon">🔎</div>
         <p class="search-empty-title">Tool tidak ditemukan</p>
@@ -114,7 +105,6 @@
       </div>
     </div>
 
-    <!-- Panel Tool -->
     <div id="tool-panel">
       <div class="panel-header">
         <button class="panel-back" onclick="closeTool()">← Kembali</button>
@@ -123,7 +113,6 @@
           <p id="panel-desc" class="panel-desc-text"></p>
         </div>
       </div>
-
       <div class="card">
         <div class="upload-zone" id="panel-dropzone" onclick="document.getElementById('panel-input').click()">
           <div class="upload-icon" id="panel-upload-icon">📂</div>
@@ -131,22 +120,16 @@
           <p class="upload-hint" id="panel-upload-hint">—</p>
           <input type="file" id="panel-input" style="display:none" onchange="handlePanelFiles(this.files)" />
         </div>
-
         <div class="file-list" id="file-list"></div>
-
         <div id="img-source-preview-wrap" style="display:none;margin-top:14px">
           <img id="img-source-preview" src="" alt="Pratinjau gambar" style="max-width:100%;max-height:240px;object-fit:contain;border-radius:8px;border:1px solid var(--border2)" />
         </div>
-
         <div id="tool-options" style="margin-top:16px"></div>
-
         <div class="mt-action" id="action-row">
           <button class="btn btn-primary" id="btn-process" onclick="processFile()" disabled>⚡ Proses</button>
           <button class="btn btn-secondary" id="btn-clear" onclick="clearFiles()" style="display:none">🗑 Hapus</button>
         </div>
-
         <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-
         <div class="result-box" id="result-box">
           <div style="font-size:26px">✅</div>
           <div style="flex:1">
@@ -165,6 +148,9 @@
   <script src="../js/config.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/ui.js"></script>
+  <script src="../js/batch-processor.js"></script>
+  <script src="../js/history-converter.js"></script>
+  <script src="../js/svg-optimizer.js"></script>
   <script src="../js/pages/converter.js"></script>
   <script>
     document.getElementById("skeleton-screen").style.display = "none";
@@ -172,4 +158,4 @@
   </script>
   <script src="../js/sw-register.js"></script>
 </body>
-          </html>
+  </html>
