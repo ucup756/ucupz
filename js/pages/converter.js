@@ -672,6 +672,12 @@ function showResult(title, desc, downloads) {
   window._downloads = downloads;
   document.getElementById("result-box").classList.add("show");
   setProgress(100);
+
+  // Catat ke riwayat konversi
+  if (currentTool && typeof window.convHistoryAdd === "function") {
+    const t = TOOLS[currentTool];
+    window.convHistoryAdd(currentTool, t.title, t.icon, uploadedFiles, desc);
+  }
 }
 
 function triggerDownload(i) {
