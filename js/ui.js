@@ -13,7 +13,7 @@ function renderSidebar(activePage) {
     { id:"profil",    href:"profil.html",    icon:"👤", label:"Profil",        labelShort:"Profil" },
     { id:"converter", href:"converter.html", icon:"🔄", label:"Converter",     labelShort:"Convert" },
     { id:"qrcode",    href:"qrcode.html",    icon:"📲", label:"QR Code",       labelShort:"QR" },
-    { id:"share",     href:"share.html",     icon:"📡", label:"Berbagi File",  labelShort:"Berbagi" },
+   /** { id:"share",     href:"share.html",     icon:"📡", label:"Berbagi File",  labelShort:"Berbagi" }, */
     { id:"setting",   href:"setting.html",   icon:"⚙️",  label:"Pengaturan",   labelShort:"Setelan" },
   ];
 
