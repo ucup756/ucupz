@@ -48,7 +48,7 @@ function renderSidebar(activePage) {
 
   sidebar.innerHTML = `
     <div class="sidebar-brand">
-      <div class="brand-icon" aria-hidden="true"><img src="/favicon-32.png" alt="Logo Website" width="50" height="50" /></div>
+      <div class="brand-icon" aria-hidden="true"><img src="/favicon-32.png" alt="Logo Website" /></div>
       <span class="brand-name">${APP_NAME}</span>
     </div>
 
