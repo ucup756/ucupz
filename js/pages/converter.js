@@ -42,7 +42,7 @@ const TOOLS = {
   exif:         { title:"Penampil EXIF",         desc:"Lihat metadata foto dan hapus untuk privasi",                           icon:"📋", accept:"image/jpeg,image/jpg", multiple:false, hint:"Unggah 1 file gambar JPG" },
   base64img:    { title:"Gambar → Base64",       desc:"Encode gambar menjadi string Base64 untuk embed HTML",                  icon:"🔤", accept:"image/*",     multiple:false, hint:"Unggah 1 file gambar" },
   mergeimg:     { title:"Gabung Gambar",         desc:"Susun beberapa gambar horizontal/vertikal jadi satu",                   icon:"🧩", accept:"image/*",     multiple:true,  hint:"Unggah 2 gambar atau lebih" },
-  ascii:        { title:"Seni ASCII",            desc:"Ubah gambar menjadi karakter teks ASCII yang bisa disalin atau diunduh",icon:"🎨", accept:"image/*",     multiple:false, hint:"Unggah 1 file gambar (JPG, PNG, WEBP)" },
+  ascii:        { title:"Seni ASCII",            desc:"Ubah gambar menjadi karakter teks ASCII yang bisa disalin atau diunduh",icon:"🎨", accept:"image/*",     multiple:false, hint:"Unggah 1 file gambar tanpa background (JPG, PNG, WEBP)" },
   // Dokumen
   md2html:      { title:"Markdown → HTML",       desc:"Konversi file .md menjadi halaman HTML siap pakai",                    icon:"📝", accept:".md,.txt",    multiple:false, hint:"Unggah file .md atau .txt berisi Markdown" },
   csv2json:     { title:"CSV ↔ JSON",            desc:"Konversi data CSV ke JSON atau sebaliknya",                             icon:"📊", accept:".csv,.json",  multiple:false, hint:"Unggah file .csv atau .json" },
