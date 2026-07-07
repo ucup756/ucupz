@@ -57,7 +57,7 @@
         <button class="cat-tab active" data-cat="all" onclick="filterCat('all',this)">📦 Semua</button>
         <button class="cat-tab" onclick="filterCat('pdf',this)">📄 PDF</button>
         <button class="cat-tab" onclick="filterCat('image',this)">🖼 Gambar</button>
-        <button class="cat-tab" onclick="filterCat('doc',this)">📝 Dokumen</button>
+        <!-- <button class="cat-tab" onclick="filterCat('doc',this)">📝 Dokumen</button> -->
       </div>
 
       <div id="search-empty-state" style="display:none" class="search-empty">
@@ -71,12 +71,12 @@
       <div class="tool-grid" data-cat="pdf">
         <div class="tool-card" data-title="Gabung PDF" data-desc="Satukan beberapa PDF" data-tags="gabung merge satukan pdf dokumen" onclick="openTool('merge')"><div class="tc-icon">🔗</div><div class="tc-title">Gabung PDF</div><div class="tc-desc">Satukan beberapa PDF</div></div>
         <div class="tool-card" data-title="Pisah PDF" data-desc="Pisah halaman PDF" data-tags="pisah split halaman pdf dokumen" onclick="openTool('split')"><div class="tc-icon">✂️</div><div class="tc-title">Pisah PDF</div><div class="tc-desc">Pisah halaman PDF</div></div>
-        <div class="tool-card" data-title="Putar PDF" data-desc="Putar halaman PDF" data-tags="putar rotate halaman pdf dokumen" onclick="openTool('rotate')"><div class="tc-icon">🔄</div><div class="tc-title">Putar PDF</div><div class="tc-desc">Putar halaman PDF</div></div>
+        <!-- <div class="tool-card" data-title="Putar PDF" data-desc="Putar halaman PDF" data-tags="putar rotate halaman pdf dokumen" onclick="openTool('rotate')"><div class="tc-icon">🔄</div><div class="tc-title">Putar PDF</div><div class="tc-desc">Putar halaman PDF</div></div> -->
         <div class="tool-card" data-title="Hapus Halaman PDF" data-desc="Buang halaman tertentu" data-tags="hapus delete halaman pdf dokumen buang" onclick="openTool('deletepages')"><div class="tc-icon">🗑</div><div class="tc-title">Hapus Halaman</div><div class="tc-desc">Buang halaman tertentu</div></div>
         <div class="tool-card" data-title="Kompres PDF" data-desc="Perkecil ukuran file" data-tags="kompres compress kecil ukuran pdf dokumen" onclick="openTool('compresspdf')"><div class="tc-icon">🗜</div><div class="tc-title">Kompres PDF</div><div class="tc-desc">Perkecil ukuran file</div></div>
-        <div class="tool-card" data-title="Tanda Air PDF" data-desc="Tambah teks di tiap halaman" data-tags="tanda air watermark teks pdf dokumen" onclick="openTool('watermarkpdf')"><div class="tc-icon">💧</div><div class="tc-title">Tanda Air PDF</div><div class="tc-desc">Tambah teks di tiap hal.</div></div>
+        <!-- <div class="tool-card" data-title="Tanda Air PDF" data-desc="Tambah teks di tiap halaman" data-tags="tanda air watermark teks pdf dokumen" onclick="openTool('watermarkpdf')"><div class="tc-icon">💧</div><div class="tc-title">Tanda Air PDF</div><div class="tc-desc">Tambah teks di tiap hal.</div></div>
         <div class="tool-card" data-title="Sandi PDF" data-desc="Proteksi dengan sandi" data-tags="sandi password proteksi enkripsi pdf dokumen" onclick="openTool('passwordpdf')"><div class="tc-icon">🔐</div><div class="tc-title">Sandi PDF</div><div class="tc-desc">Proteksi dengan sandi</div></div>
-        <div class="tool-card" data-title="PDF ke Teks" data-desc="Ekstrak teks dari PDF" data-tags="pdf teks text ekstrak konversi dokumen" onclick="openTool('pdf2txt')"><div class="tc-icon">📑</div><div class="tc-title">PDF ke Teks</div><div class="tc-desc">Ekstrak teks dari PDF</div></div>
+        <div class="tool-card" data-title="PDF ke Teks" data-desc="Ekstrak teks dari PDF" data-tags="pdf teks text ekstrak konversi dokumen" onclick="openTool('pdf2txt')"><div class="tc-icon">📑</div><div class="tc-title">PDF ke Teks</div><div class="tc-desc">Ekstrak teks dari PDF</div></div> -->
         <div class="tool-card" data-title="Gambar ke PDF" data-desc="JPG PNG jadi dokumen PDF" data-tags="gambar image jpg png pdf konversi dokumen" onclick="openTool('img2pdf')"><div class="tc-icon">🖼</div><div class="tc-title">Gambar ke PDF</div><div class="tc-desc">JPG/PNG jadi dokumen</div></div>
         <div class="tool-card" data-title="PDF ke JPG" data-desc="Tiap halaman jadi gambar" data-tags="pdf jpg gambar image konversi halaman dokumen" onclick="openTool('pdf2img')"><div class="tc-icon">📄</div><div class="tc-title">PDF ke JPG</div><div class="tc-desc">Tiap halaman jadi gambar</div></div>
       </div>
@@ -85,7 +85,7 @@
       <div class="tool-grid" data-cat="image">
         <div class="tool-card" data-title="Konversi Format" data-desc="JPG PNG WEBP ubah format" data-tags="konversi format jpg png webp gambar ubah" onclick="openTool('imgconvert')"><div class="tc-icon">🔁</div><div class="tc-title">Konversi Format</div><div class="tc-desc">JPG ↔ PNG ↔ WEBP</div></div>
         <div class="tool-card" data-title="Kompres Gambar" data-desc="Perkecil ukuran file gambar" data-tags="kompres compress kecil ukuran gambar image foto" onclick="openTool('compress')"><div class="tc-icon">🗜</div><div class="tc-title">Kompres</div><div class="tc-desc">Perkecil ukuran file</div></div>
-        <div class="tool-card" data-title="Ubah Ukuran Gambar" data-desc="Ubah dimensi gambar resize" data-tags="resize ubah ukuran dimensi lebar tinggi gambar" onclick="openTool('resize')"><div class="tc-icon">📐</div><div class="tc-title">Ubah Ukuran</div><div class="tc-desc">Ubah dimensi gambar</div></div>
+        <!-- <div class="tool-card" data-title="Ubah Ukuran Gambar" data-desc="Ubah dimensi gambar resize" data-tags="resize ubah ukuran dimensi lebar tinggi gambar" onclick="openTool('resize')"><div class="tc-icon">📐</div><div class="tc-title">Ubah Ukuran</div><div class="tc-desc">Ubah dimensi gambar</div></div>
         <div class="tool-card" data-title="Potong Gambar" data-desc="Potong area gambar crop" data-tags="potong crop area gambar foto" onclick="openTool('crop')"><div class="tc-icon">✂️</div><div class="tc-title">Potong</div><div class="tc-desc">Potong area gambar</div></div>
         <div class="tool-card" data-title="Putar Balik Gambar" data-desc="Putar mirror gambar foto" data-tags="putar balik rotate flip mirror gambar foto" onclick="openTool('rotate_img')"><div class="tc-icon">🔄</div><div class="tc-title">Putar / Balik</div><div class="tc-desc">Putar &amp; mirror gambar</div></div>
         <div class="tool-card" data-title="Sesuaikan Gambar" data-desc="Kecerahan kontras saturasi" data-tags="sesuaikan adjust kecerahan brightness kontras contrast saturasi gambar" onclick="openTool('adjust')"><div class="tc-icon">🎛</div><div class="tc-title">Sesuaikan</div><div class="tc-desc">Kecerahan, Kontras, Saturasi</div></div>
@@ -94,15 +94,15 @@
         <div class="tool-card" data-title="Tanda Air Gambar" data-desc="Tempel teks watermark di foto" data-tags="tanda air watermark teks gambar foto" onclick="openTool('watermarkimg')"><div class="tc-icon">💧</div><div class="tc-title">Tanda Air</div><div class="tc-desc">Tempel teks di foto</div></div>
         <div class="tool-card" data-title="Penampil EXIF" data-desc="Lihat hapus metadata foto" data-tags="exif metadata info foto gambar hapus privasi" onclick="openTool('exif')"><div class="tc-icon">📋</div><div class="tc-title">Penampil EXIF</div><div class="tc-desc">Lihat &amp; hapus metadata</div></div>
         <div class="tool-card" data-title="Gambar ke Base64" data-desc="Encode gambar base64 HTML embed" data-tags="base64 encode gambar html embed string" onclick="openTool('base64img')"><div class="tc-icon">🔤</div><div class="tc-title">Gambar → Base64</div><div class="tc-desc">Encode untuk embed HTML</div></div>
-        <div class="tool-card" data-title="Gabung Gambar" data-desc="Susun gambar jadi satu kanvas" data-tags="gabung merge susun gambar kanvas foto horizontal vertikal" onclick="openTool('mergeimg')"><div class="tc-icon">🧩</div><div class="tc-title">Gabung Gambar</div><div class="tc-desc">Susun jadi satu kanvas</div></div>
+        <div class="tool-card" data-title="Gabung Gambar" data-desc="Susun gambar jadi satu kanvas" data-tags="gabung merge susun gambar kanvas foto horizontal vertikal" onclick="openTool('mergeimg')"><div class="tc-icon">🧩</div><div class="tc-title">Gabung Gambar</div><div class="tc-desc">Susun jadi satu kanvas</div></div> -->
         <div class="tool-card" data-title="Seni ASCII" data-desc="Gambar ke karakter teks ASCII" data-tags="ascii seni art karakter teks gambar foto" onclick="openTool('ascii')"><div class="tc-icon">🎨</div><div class="tc-title">Seni ASCII</div><div class="tc-desc">Gambar ke karakter teks</div></div>
       </div>
 
-      <p class="grid-cat-label" data-cat="doc" style="font-size:12px;color:var(--text3);margin:24px 0 12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Tools Dokumen</p>
+      <!-- <p class="grid-cat-label" data-cat="doc" style="font-size:12px;color:var(--text3);margin:24px 0 12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Tools Dokumen</p>
       <div class="tool-grid" data-cat="doc">
         <div class="tool-card" data-title="Markdown ke HTML" data-desc="Konversi md ke halaman web html" data-tags="markdown md html konversi web dokumen" onclick="openTool('md2html')"><div class="tc-icon">📝</div><div class="tc-title">Markdown → HTML</div><div class="tc-desc">Konversi .md ke halaman web</div></div>
         <div class="tool-card" data-title="CSV JSON" data-desc="Konversi format data csv json" data-tags="csv json konversi data tabel dokumen" onclick="openTool('csv2json')"><div class="tc-icon">📊</div><div class="tc-title">CSV ↔ JSON</div><div class="tc-desc">Konversi format data</div></div>
-      </div>
+      </div> -->
     </div>
 
     <div id="tool-panel">
