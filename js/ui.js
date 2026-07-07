@@ -58,19 +58,20 @@ function renderSidebar(activePage) {
       ${navHTML}
       <div style="flex:1"></div>
       <p class="nav-section-label" style="margin-top:16px">Akun</p>
+          <div class="sidebar-user" role="status" aria-label="Info pengguna">
+            <img id="user-avatar" src="" alt="Avatar pengguna" class="user-avatar" />
+            <div class="user-info">
+              <span id="user-name" class="user-name">—</span>
+              <span id="user-email" class="user-email">—</span>
+            </div>
+          </div>
       <button class="nav-item danger" onclick="showLogoutModal()">
         <span class="nav-icon" aria-hidden="true">🚪</span>
         Keluar
       </button>
     </nav>
 
-    <div class="sidebar-user" role="status" aria-label="Info pengguna">
-      <img id="user-avatar" src="" alt="Avatar pengguna" class="user-avatar" />
-      <div class="user-info">
-        <span id="user-name" class="user-name">—</span>
-        <span id="user-email" class="user-email">—</span>
-      </div>
-    </div>
+
   `;
 
   // Isi data user setelah elemen sidebar ada di DOM
